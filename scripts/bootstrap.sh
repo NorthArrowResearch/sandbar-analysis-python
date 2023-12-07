@@ -9,8 +9,10 @@ python3 -m venv .venv
 # Cython and numpy need to go in before an explicit GDAL install
 .venv/bin/pip --timeout=120 install \
   Cython==0.29.23 \
-  numpy==1.23.4 \
-  scipy==1.9.3
+  numpy==1.25.1
+  # \
+  # numpy==1.23.4 \
+  # scipy==1.9.3
 
 # Need numpy before GDAL
 .venv/bin/pip install GDAL==$(gdal-config --version)
