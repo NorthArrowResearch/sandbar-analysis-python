@@ -1,0 +1,36 @@
+# Site title will be used everywhere
+title: Sandbar Report
+
+# Final root url of the site. No ending slash. No subdirectory
+url: https://localhost
+# If the site is in a subdirectory you should do it like this: "/subdirectory". Otherwise ""
+baseurl: ""
+# When serving locally what port should we use:
+port: 4001
+
+# Markdown style
+markdown: kramdown
+# Syntax highlighter.
+highlighter: rouge
+
+
+# Choosing "default" layout means we don't need a "layout:default" in all our 
+# front matter
+defaults:
+  -
+    scope:
+      path: "" # an empty string here means all files in the project
+    values:
+      layout: "default"
+
+# Files/Folders to exclude from publishing
+exclude:
+  - src
+  - LICENSE
+  - README.md
+  - _config.yml
+  - "*.sqlite"  
+
+# Where our layouts and templates are stored
+layouts_dir:  src/_layouts
+includes_dir: src/_includes
