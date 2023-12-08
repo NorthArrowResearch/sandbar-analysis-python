@@ -3,11 +3,11 @@ Run the binned analysis
 """
 import csv
 from typing import Dict, List
-from RasterAnalysis import get_vol_and_area
-from Raster import Raster
+from raster_analysis import get_vol_and_area
+from raster import Raster
 from logger import Logger
-from SandbarSite import SandbarSite
-from AnalysisBin import AnalysisBin
+from sandbar_site import SandbarSite
+from analysis_bin import AnalysisBin
 
 
 def run_binned_analysis(

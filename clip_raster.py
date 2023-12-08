@@ -4,7 +4,7 @@ This is used for clipping the DEM rasters to the computation extent polygons
 """
 import os
 from subprocess import call, PIPE
-from Raster import delete_raster
+from raster import delete_raster
 from logger import Logger
 
 

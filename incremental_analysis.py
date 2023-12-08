@@ -3,11 +3,11 @@ Incremental sandbar analysis
 """
 from typing import Dict
 import csv
-from RasterAnalysis import get_vol_and_area
-from Raster import Raster
+from raster_analysis import get_vol_and_area
+from raster import Raster
 from logger import Logger
-from SandbarSite import SandbarSite
-from SandbarSurveySection import SandbarSurveySection
+from sandbar_site import SandbarSite
+from sandbar_survey_section import SandbarSurveySection
 
 
 def run_incremental_analysis(sites: Dict[int, SandbarSite], elev_benchmark: float, elev_increment: float, cell_size: float, result_file_path: str) -> None:

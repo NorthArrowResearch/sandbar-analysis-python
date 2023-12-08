@@ -3,7 +3,7 @@ Class defining an individual sandbar survey
 """
 from typing import Dict
 import os
-from SandbarSurveySection import SandbarSurveySection
+from sandbar_survey_section import SandbarSurveySection
 
 
 class SandbarSurvey:

@@ -4,8 +4,8 @@ Build rasters from the CSV files
 from typing import Dict
 import os.path
 from logger import Logger
-from SandbarSite import SandbarSite
-from ComputationExtents import ComputationExtents
+from sandbar_site import SandbarSite
+from computation_extents import ComputationExtents
 
 
 def raster_preparation(

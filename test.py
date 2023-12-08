@@ -20,11 +20,11 @@ from osgeo import gdal
 import numpy as np
 
 # Here's what we're testing
-import RasterAnalysis
+import raster_analysis
 from logger import Logger
 from Raster import Raster, delete_raster
-from CSVLib import union_csv_extents
-from SandbarSite import SandbarSite
+from csv_lib import union_csv_extents
+from sandbar_site import SandbarSite
 
 
 class TempPathHelper():
@@ -478,7 +478,7 @@ class TestAreaVolume(unittest.TestCase):
         """
         Test when low threshold is 0 and there is no high threshold
         """
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arSurf, self.arMin, 0, None, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.08, places=7)
         self.assertAlmostEqual(test[1], 1.8439, places=7)
@@ -487,7 +487,7 @@ class TestAreaVolume(unittest.TestCase):
         """
         Test when low threshold is 1 and there is no high threshold
         """
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arSurf, self.arMin, 10, None, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.07, places=7)
         self.assertAlmostEqual(test[1], 1.32, places=7)
@@ -496,13 +496,13 @@ class TestAreaVolume(unittest.TestCase):
         """
         Test when there is a high threshold but no low threshold
         """
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arSurf, self.arMin, None, 20, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.04, places=7)
         self.assertAlmostEqual(test[1], 0.305, places=7)
 
     def test_LowAndHigh(self):
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arSurf, self.arMin, 10, 20, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.03, places=7)
         self.assertAlmostEqual(test[1], 0.08, places=7)
@@ -511,22 +511,22 @@ class TestAreaVolume(unittest.TestCase):
         """
         Test when the minimum surface is equal to the surface being tested
         """
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arMin, self.arMin, 0, None, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.08, places=7)
         self.assertAlmostEqual(test[1], 0.0, places=7)
 
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arMin, self.arMin, 10, None, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.02, places=7)
         self.assertAlmostEqual(test[1], 0.0, places=7)
 
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arMin, self.arMin, None, 20, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.08, places=7)
         self.assertAlmostEqual(test[1], 0.0, places=7)
 
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arMin, self.arMin, 10, 20, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.01, places=7)
         self.assertAlmostEqual(test[1], 0.0, places=7)
@@ -535,17 +535,17 @@ class TestAreaVolume(unittest.TestCase):
         """
         Test when the thresholds are all super high (above the surface and the minimum)
         """
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arSurf, self.arMin, 101, None, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.0, places=7)
         self.assertAlmostEqual(test[1], 0.0, places=7)
 
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arSurf, self.arMin, None, 200, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.08, places=7)
         self.assertAlmostEqual(test[1], 1.8439, places=7)
 
-        test = RasterAnalysis.get_vol_and_area(
+        test = raster_analysis.get_vol_and_area(
             self.arSurf, self.arMin, 101, 200, self.cellSize, "")
         self.assertAlmostEqual(test[0], 0.0, places=7)
         self.assertAlmostEqual(test[1], 0.0, places=7)

@@ -8,13 +8,13 @@ from math import ceil, isnan
 from datetime import datetime
 from osgeo import ogr
 import numpy as np
-from Raster import Raster
-from CSVLib import union_csv_extents
+from raster import Raster
+from csv_lib import union_csv_extents
 from logger import Logger
-from ClipRaster import clip_raster
-from SandbarSurvey import SandbarSurvey, get_file_insensitive
-from SandbarSurveySection import SandbarSurveySection
-from ComputationExtents import ComputationExtents, SITE_CODE_FIELD
+from clip_raster import clip_raster
+from sandbar_survey import SandbarSurvey, get_file_insensitive
+from sandbar_survey_section import SandbarSurveySection
+from computation_extents import ComputationExtents, SITE_CODE_FIELD
 
 
 class SandbarSite:
