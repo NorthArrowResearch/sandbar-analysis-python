@@ -26,7 +26,7 @@ class Raster:
 
     def __init__(self, *args, **kwargs):
 
-        self.log = Logger("Raster")
+        self.log = Logger('Raster')
         self.filename = kwargs.get('filepath', None)
 
         # Got a file. Load it
@@ -125,7 +125,7 @@ class Raster:
         if not pt_center:
             pt_center = self.PointShift.CENTER
 
-        file_arr = np.loadtxt(open(csv_path, "rb"), delimiter=" ")
+        file_arr = np.loadtxt(open(csv_path, 'rb'), delimiter=' ')
 
         # Set up an empty array with the right size
         z_array = np.empty((self.rows, self.cols))
@@ -192,12 +192,12 @@ class Raster:
         # Bilinear is a lot slower that the others and it's its own
         # method, written based on the
         # well known wikipedia article.
-        if method == "bilinear":
+        if method == 'bilinear':
             # Now we resample based on the method passed in here.
             factor = self.cell_width / new_cell_size
             new_shape = (int(self.rows * factor), int(self.cols * factor))
             array_resampled = bilinear_resample(self.array, new_shape)
-        elif method == "linear" or method == "cubic" or method == "nearest":
+        elif method == 'linear' or method == 'cubic' or method == 'nearest':
             array_resampled = interpolate.griddata((x_axis_old.ravel(), y_axis_old.ravel()), self.array.ravel(),
                                                    (x_axis_new, y_axis_new), method=method, fill_value=np.nan)
         else:
@@ -207,7 +207,7 @@ class Raster:
         new_dem.cell_width = new_cell_size
         new_dem.cell_height = -new_cell_size
         new_dem.set_array(np.ma.masked_array(array_resampled, new_mask), False)
-        self.log.debug("Successfully Resampled Raster")
+        self.log.debug('Successfully Resampled Raster')
         return new_dem
 
     def set_array(self, incoming_array: np.array, copy=False) -> None:
@@ -299,10 +299,10 @@ class Raster:
         :return:
         """
         arr = None
-        str_flipped = "False"
+        str_flipped = 'False'
         if self.cell_height >= 0:
             arr = np.flipud(self.array)
-            str_flipped = "True"
+            str_flipped = 'True'
         else:
             arr = self.array
         print(f'\n----------- Array Flip: {str_flipped} -----------')
@@ -355,7 +355,7 @@ def delete_raster(full_path: str) -> None:
     :return:
     """
 
-    log = Logger("Delete Raster")
+    log = Logger('Delete Raster')
 
     if path.isfile(full_path):
         try:

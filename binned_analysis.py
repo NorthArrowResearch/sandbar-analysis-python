@@ -20,8 +20,8 @@ def run_binned_analysis(
     """
 
     model_results: List[tuple] = []
-    log = Logger("Binned Analysis")
-    log.info("Starting binned analysis...")
+    log = Logger('Binned Analysis')
+    log.info('Starting binned analysis...')
 
     for site_id, site in sites.items():
 
@@ -53,9 +53,9 @@ def run_binned_analysis(
                         lower_elev = site.get_stage(anal_bin.lower_discharge)
                         upper_elev = site.get_stage(anal_bin.upper_discharge)
 
-                        area_vol = get_vol_and_area(survey_raster.array, site.min_surface.array, lower_elev, upper_elev, cell_size, site.min_surface_path)
+                        area_vol = get_vol_and_area(survey_raster.array, site.min_surface.array, lower_elev, upper_elev, cell_size)
 
-                        model_results.append((site_id, site.site_code5, survey_id, survey_date.survey_date.strftime("%Y-%m-%d"),
+                        model_results.append((site_id, site.site_code5, survey_id, survey_date.survey_date.strftime('%Y-%m-%d'),
                                              section.section_type_id, section.section_type, section.section_id,
                                              anal_bin.bin_id, anal_bin.title, area_vol[0], area_vol[1], area_vol[2], area_vol[3], area_vol[4], area_vol[5]))
 

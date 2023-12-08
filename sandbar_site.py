@@ -41,9 +41,9 @@ class SandbarSite:
 
         self.surveys: Dict[int, SandbarSurvey] = {}
 
-        self.log = Logger("Sandbar Site")
+        self.log = Logger('Sandbar Site')
 
-        self.min_surface_path = ""  # populated by GenerateDEMRasters()
+        self.min_surface_path = ''  # populated by GenerateDEMRasters()
         self.min_surface = None
 
         # This is set to true if issues occur with the site and it can't be processed.
@@ -93,7 +93,7 @@ class SandbarSite:
         site code (e.g.  0033L returns 33)
         :return:
         """
-        the_match = re.search("[0]*([0-9]+)", self.site_code)
+        the_match = re.search('[0]*([0-9]+)', self.site_code)
         return the_match.group(1) if the_match else None
 
     def generate_dem_rasters(self, survey_folder: str, csv_cell_size: float, cell_size: float, resample_method: str, epsg, reuse_rasters: bool) -> None:

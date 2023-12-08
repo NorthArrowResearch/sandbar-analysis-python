@@ -9,7 +9,7 @@ import copy
 import numpy as np
 
 
-def get_vol_and_area(ar_survey: np.array, ar_minimum: np.array, lower_elev: float, upper_elev: float, cell_size: float, min_surface_path: str) -> tuple:
+def get_vol_and_area(ar_survey: np.array, ar_minimum: np.array, lower_elev: float, upper_elev: float, cell_size: float) -> tuple:
     """
     Calculates the volume for a survey raster and minimum surface. If lower elevation is
     null then the calculation is up to the upper elevation. If the upper elevation is null
@@ -42,7 +42,7 @@ def get_vol_and_area(ar_survey: np.array, ar_minimum: np.array, lower_elev: floa
     ar_new_min_srf[:] = ar_minimum
     ar_new_min_srf = np.ma.masked_where(ar_survey.mask, ar_new_min_srf, True)
 
-    template = {"area": 0.0, "volume": 0.0}
+    template = {'area': 0.0, 'volume': 0.0}
     survey_above_upper = copy.copy(template)
     min_surf_above_upper = copy.copy(template)
 
@@ -57,15 +57,15 @@ def get_vol_and_area(ar_survey: np.array, ar_minimum: np.array, lower_elev: floa
         survey_above_upper = get_above_elev(ar_survey, upper_elev, cell_size)
         min_surf_above_upper = get_above_elev(ar_new_min_srf, upper_elev, cell_size)
 
-    survey_net_vol = survey_above_lower["volume"] - \
-        survey_above_upper["volume"]
-    min_surf_net_vol = min_surf_above_lower["volume"] - \
-        min_surf_above_upper["volume"]
+    survey_net_vol = survey_above_lower['volume'] - \
+        survey_above_upper['volume']
+    min_surf_net_vol = min_surf_above_lower['volume'] - \
+        min_surf_above_upper['volume']
     net_volume = survey_net_vol - min_surf_net_vol
 
-    area = survey_above_lower["area"] - survey_above_upper["area"]
+    area = survey_above_lower['area'] - survey_above_upper['area']
 
-    return (area, net_volume, survey_above_lower["volume"], min_surf_above_lower["area"], min_surf_above_lower["volume"], min_surf_net_vol)
+    return (area, net_volume, survey_above_lower['volume'], min_surf_above_lower['area'], min_surf_above_lower['volume'], min_surf_net_vol)
 
 
 def get_above_elev(ar_values: np.array, elevation: float, cell_size: float) -> Dict[float, float]:

@@ -20,10 +20,6 @@ class ComputationExtents:
         self.full_path = full_path
         self.log = Logger('Comp. Extents')
 
-        # section_eddy = "eddy"
-        # section_separation = "separation"
-        # Section_Reattachment = "reattachment"
-
         assert os.path.isfile(self.full_path), f'The computation extents ShapeFile does not exist at {self.full_path}'
 
         try:
@@ -81,12 +77,12 @@ class ComputationExtents:
         """
 
         section_where = section_type
-        idx_hyphon = section_where.find("-")
+        idx_hyphon = section_where.find('-')
         if idx_hyphon >= 0:
             if 'single' in section_where[idx_hyphon:].lower():
                 section_where = section_where[:idx_hyphon]
             else:
                 section_where = section_where[idx_hyphon + 1:]
 
-        section_where = section_where.replace(" ", "")
+        section_where = section_where.replace(' ', '')
         return f"(\"{SITE_CODE_FIELD}\" ='{site_code}')  AND (\"{SECTION_FIELD}\"='{section_where}')"

@@ -17,7 +17,7 @@ def clip_raster(gdal_warp_path: str, in_raster: str, out_raster: str, shape_file
     :param where_clause: Feature filter for selecting which features to use for clipping
     """
 
-    log = Logger("Clip Raster")
+    log = Logger('Clip Raster')
 
     assert os.path.isfile(gdal_warp_path), f'Missing GDAL Warp executable at {gdal_warp_path}'
     assert os.path.isfile(in_raster), f'Missing clipping operation input at {in_raster}'

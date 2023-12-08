@@ -24,7 +24,7 @@ def union_csv_extents(csv_files: List[str], delimiter: str = ' ', cell_size: flo
 
     for file in csv_files:
 
-        file_arr = np.loadtxt(open(file, "rb"), delimiter=delimiter)
+        file_arr = np.loadtxt(open(file, 'rb'), delimiter=delimiter)
 
         # Get the extents (plus some padding):
         x_max = np.amax(file_arr[:, 1])

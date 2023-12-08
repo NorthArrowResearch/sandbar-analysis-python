@@ -21,8 +21,8 @@ def run_incremental_analysis(sites: Dict[int, SandbarSite], elev_benchmark: floa
     :return:
     """
 
-    log = Logger("Inc. Analysis")
-    log.info("Starting incremental analysis...")
+    log = Logger('Inc. Analysis')
+    log.info('Starting incremental analysis...')
     model_results = []
 
     for site in sites.values():
@@ -91,8 +91,7 @@ def run_section(site: SandbarSite, section: SandbarSurveySection, elev_benchmark
 
     while analysis_elev < survey_raster.max:
         area_vol = (-1.0, -1)
-        area_vol = get_vol_and_area(survey_raster.array, site.min_surface.array, analysis_elev, None,
-                                    cell_size, site.min_surface_path)
+        area_vol = get_vol_and_area(survey_raster.array, site.min_surface.array, analysis_elev, None, cell_size)
 
         if area_vol[0] > 0:
             section_results.append((analysis_elev, area_vol[0], area_vol[1]))
