@@ -11,7 +11,11 @@ from SandbarSite import SandbarSite
 from AnalysisBin import AnalysisBin
 
 
-def run_binned_analysis(sites: Dict[int, SandbarSite], analysis_bins: Dict[int, AnalysisBin], cell_size: float, result_file_path: str) -> None:
+def run_binned_analysis(
+        sites: Dict[int, SandbarSite],
+        analysis_bins: Dict[int, AnalysisBin],
+        cell_size: float,
+        result_file_path: str) -> None:
     """
     Run the binned analysis
     """
@@ -20,7 +24,7 @@ def run_binned_analysis(sites: Dict[int, SandbarSite], analysis_bins: Dict[int, 
     log = Logger("Binned Analysis")
     log.info("Starting binned analysis...")
 
-    for site_id, site in sites.iteritems():
+    for site_id, site in sites.items():
 
         # Only process sites that have computation extent polygons
         if site.Ignore:
@@ -30,7 +34,7 @@ def run_binned_analysis(sites: Dict[int, SandbarSite], analysis_bins: Dict[int, 
 
         # Loop over all the surveys for the site and perform the binned (<8k,
         # 8-25k, > 25k) analysis
-        for survey_id, survey_date in site.surveyDates.items():
+        for survey_id, survey_date in site.survey_dates.items():
 
             # Only proceed with this survey if it is flagged to be apart of the analysis.
             if survey_date.IsAnalysis:
@@ -53,9 +57,9 @@ def run_binned_analysis(sites: Dict[int, SandbarSite], analysis_bins: Dict[int, 
                         area_vol = get_vol_and_area(
                             survey_raster.array, site.MinimumSurface.array, lower_elev, upper_elev, cell_size, site.MinimumSurfacePath)
 
-                        model_results.append((site_id, site.siteCode5, survey_id, survey_date.SurveyDate.strftime("%Y-%m-%d"),
-                                             section.SectionTypeID, section.SectionType,
-                                             section.SectionID, bin_id, bin.title, area_vol[0], area_vol[1], area_vol[2], area_vol[3], area_vol[4], area_vol[5]))
+                        model_results.append((site_id, site.site_code5, survey_id, survey_date.survey_date.strftime("%Y-%m-%d"),
+                                             section.section_type_id, section.section_type,
+                                             section.section_id, bin_id, bin.title, area_vol[0], area_vol[1], area_vol[2], area_vol[3], area_vol[4], area_vol[5]))
 
     # Write the binned results to CSV
     log.info(f'Binned analysis complete. Writing {len(model_results)} results to {result_file_path}')

@@ -16,7 +16,6 @@ def raster_preparation(
         epsg: int,
         reuse_rasters: bool,
         gdal_warp: str,
-        section_types,
         comp_extent_shp: str) -> None:
     """
     Build rasters from the CSV files
@@ -54,10 +53,10 @@ def raster_preparation(
 
         # Convert the TXT files to GeoTIFFs
         site.generate_dem_rasters(survey_folder, csv_cell_size, raster_cell_size, resample_method, epsg, reuse_rasters)
-        site.clip_dem_rasters_to_sections(gdal_warp, survey_folder, section_types, comp_extent_shp, reuse_rasters)
+        site.clip_dem_rasters_to_sections(gdal_warp, survey_folder, comp_extent_shp, reuse_rasters)
 
         elevation8k = site.get_stage(8000)
         elevation25k = site.get_stage(25000)
-        log.info(f'Site {site.siteCode5}: Raster preparation is complete. Elevation at 8K is {elevation8k:.3f} and 25K is {elevation25k:.3f}')
+        log.info(f'Site {site.site_code5}: Raster preparation is complete. Elevation at 8K is {elevation8k:.3f} and 25K is {elevation25k:.3f}')
 
     log.info(f'Raster preparation is complete for all {len(sites)} sites.')

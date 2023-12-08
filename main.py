@@ -9,7 +9,7 @@ from logger import Logger
 from AnalysisBin import load_analysis_bins
 from ComputationExtents import ComputationExtents
 from SandbarSite import load_sandbar_data
-from SectionTypes import load_section_types
+# from SectionTypes import load_section_types
 from IncrementalAnalysis import run_incremental_analysis
 from BinnedAnalysis import run_binned_analysis
 from RasterPreparation import raster_preparation
@@ -24,7 +24,7 @@ log = Logger()
 #     pydevd.settrace('localhost', port=53100, stdoutToServer=True, stderrToServer=True)
 
 
-def main(config):
+def main(conf: dict) -> None:
     """
     The main Sandbar processing routine
     """
@@ -33,27 +33,27 @@ def main(config):
 
     # Load a dictionary of SandbarSites and their surveys from the workbench
     # database for the sites that need to be processed.
-    section_types = load_section_types(config['SectionTypes'])
-    analysis_bins = load_analysis_bins(config['AnalysisBins'])
-    sites = load_sandbar_data(config['TopLevelFolder'], config['Sites'])
+    # section_types = load_section_types(config['SectionTypes'])
+    analysis_bins = load_analysis_bins(conf['AnalysisBins'])
+    sites = load_sandbar_data(conf['TopLevelFolder'], conf['Sites'])
 
     # Load the ShapeFile containing computational extent polygons for sandbar sites
     # Validate all sites have polygon extent features in this ShapeFile.
-    comp_extent_shp = ComputationExtents(config['CompExtentShpPath'], config['srsEPSG'])
+    comp_extent_shp = ComputationExtents(conf['CompExtentShpPath'], conf['srsEPSG'])
     comp_extent_shp.validate_site_codes(sites)
 
     # Create the DEM rasters and then clip them to the sandbar sections
-    raster_preparation(sites, config['AnalysisFolder'], config['CSVCellSize'], config['RasterCellSize'],
-                       config['ResampleMethod'], config['srsEPSG'], config['ReUseRasters'], config['GDALWarp'],
-                       section_types, comp_extent_shp)
+    raster_preparation(sites, conf['AnalysisFolder'], conf['CSVCellSize'], conf['RasterCellSize'],
+                       conf['ResampleMethod'], conf['srsEPSG'], conf['ReUseRasters'], conf['GDALWarp'],
+                       comp_extent_shp)
 
     # prepare result file paths
-    inc_results_path = os.path.join(config['AnalysisFolder'], config['IncrementalResults'])
-    bin_results_path = os.path.join(config['AnalysisFolder'], config['BinnedResults'])
+    inc_results_path = os.path.join(conf['AnalysisFolder'], conf['IncrementalResults'])
+    bin_results_path = os.path.join(conf['AnalysisFolder'], conf['BinnedResults'])
 
     # Run the analyses
-    run_incremental_analysis(sites, config['ElevationBenchmark'], config['ElevationIncrement'], config['RasterCellSize'], inc_results_path)
-    run_binned_analysis(sites, analysis_bins, config['RasterCellSize'], bin_results_path)
+    run_incremental_analysis(sites, conf['ElevationBenchmark'], conf['ElevationIncrement'], conf['RasterCellSize'], inc_results_path)
+    run_binned_analysis(sites, analysis_bins, conf['RasterCellSize'], bin_results_path)
 
     log.info('Sandbar analysis process complete.')
 
@@ -66,17 +66,17 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Load the XML into a simple dictionary
-    conf = load_config(args.input_xml)
+    config = load_config(args.input_xml)
 
     log = Logger('Program')
-    log.setup(logRoot=conf['AnalysisFolder'], xmlFilePath=conf['Log'], verbose=args.verbose, config=conf)
+    log.setup(logRoot=config['AnalysisFolder'], xmlFilePath=config['Log'], verbose=args.verbose, config=config)
 
-    log.debug('Config file', conf)
+    log.debug('Config file', config)
 
     try:
         # Now kick things off
         log.info(f'Starting Sandbar script with: input_xml: {args.input_xml}')
-        main(conf)
+        main(config)
     except AssertionError as e:
         log.error('Assertion Error', e)
         sys.exit(0)

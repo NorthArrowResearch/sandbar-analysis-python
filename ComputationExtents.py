@@ -8,17 +8,19 @@ from osgeo import osr, ogr
 from logger import Logger
 from SandbarSite import SandbarSite
 
-SITE_CODE_FIELD = "Site"
-SECTION_FIELD = "Section"
+SITE_CODE_FIELD = 'Site'
+SECTION_FIELD = 'Section'
 
 
 class ComputationExtents:
-    """Computational extents represents a ShapeFile containing polygons that define the computational
-    extents for each site. The ShapeFile must contain a field named 'Site' that contains the site code"""
+    """
+    Computational extents represents a ShapeFile containing polygons that define the computational
+    extents for each site. The ShapeFile must contain a field named 'Site' that contains the site code
+    """
 
     def __init__(self, full_path: str, epsg: int | str):
         self.full_path = full_path
-        self.log = Logger("Comp. Extents")
+        self.log = Logger('Comp. Extents')
 
         # section_eddy = "eddy"
         # section_separation = "separation"
@@ -83,7 +85,7 @@ class ComputationExtents:
         section_where = section_type
         idx_hyphon = section_where.find("-")
         if idx_hyphon >= 0:
-            if "single" in section_where[idx_hyphon:].lower():
+            if 'single' in section_where[idx_hyphon:].lower():
                 section_where = section_where[:idx_hyphon]
             else:
                 section_where = section_where[idx_hyphon + 1:]
@@ -130,29 +132,29 @@ class ComputationExtents:
         self.log.info(f'Computation extents ShapeFile confirmed to contain at least one polygon for all {len(sites)} sandbar site(s) loaded.')
 
 
-def get_extents(feature: ogr.Feature) -> tuple:
-    """
-    Return the extents of an OGR feature
-    :param feature:
-    :return:
-    """
-    geometry = feature.GetGeometryRef()
-    return geometry.GetEnvelope()
+# def get_extents(feature: ogr.Feature) -> tuple:
+#     """
+#     Return the extents of an OGR feature
+#     :param feature: OGR feature to get extents from
+#     :return: The bounding envelope tuple of the feature
+#     """
+#     geometry = feature.GetGeometryRef()
+#     return geometry.GetEnvelope()
 
 
-def extent_union(old_extents: tuple, new_extents: tuple) -> tuple:
-    """
-    Union two tuples representing a bounding triangle (x1, x2, y1, y2, n)
-    n is the collected number of features in the extent (this is mostly for fun)
-    :param oldExtents:
-    :param newExtents:
-    :return:
-    """
-    x1 = old_extents[0] if old_extents[0] < new_extents[0] else new_extents[0]
-    x2 = old_extents[1] if old_extents[1] > new_extents[1] else new_extents[1]
+# def extent_union(old_extents: tuple, new_extents: tuple) -> tuple:
+#     """
+#     Union two tuples representing a bounding triangle (x1, x2, y1, y2, n)
+#     n is the collected number of features in the extent (this is mostly for fun)
+#     :param oldExtents:
+#     :param newExtents:
+#     :return:
+#     """
+#     x1 = old_extents[0] if old_extents[0] < new_extents[0] else new_extents[0]
+#     x2 = old_extents[1] if old_extents[1] > new_extents[1] else new_extents[1]
 
-    y1 = old_extents[2] if old_extents[2] < new_extents[2] else new_extents[2]
-    y2 = old_extents[3] if old_extents[3] > new_extents[3] else new_extents[3]
+#     y1 = old_extents[2] if old_extents[2] < new_extents[2] else new_extents[2]
+#     y2 = old_extents[3] if old_extents[3] > new_extents[3] else new_extents[3]
 
-    new_n = old_extents[4] + 1
-    return (x1, x2, y1, y2, new_n)
+#     new_n = old_extents[4] + 1
+#     return (x1, x2, y1, y2, new_n)

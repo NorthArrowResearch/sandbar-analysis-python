@@ -12,7 +12,7 @@ from Raster import Raster
 from CSVLib import union_csv_extents
 from logger import Logger
 from ClipRaster import clip_raster
-from SandbarSurvey import SandbarSurvey, getfile_insensitive
+from SandbarSurvey import SandbarSurvey, get_file_insensitive
 from SandbarSurveySection import SandbarSurveySection
 
 
@@ -165,7 +165,7 @@ class SandbarSite:
 
         assert os.path.isfile(self.min_surface_path), f'Minimum surface raster is missing for site {self.site_code5} at {self.min_surface_path}'
 
-    def clip_dem_rasters_to_sections(self, gdal_warp: str, survey_folder: str, sections, comp_extent, reuse_rasters: bool) -> None:
+    def clip_dem_rasters_to_sections(self, gdal_warp: str, survey_folder: str, comp_extent, reuse_rasters: bool) -> None:
         """
         :param gdal_warp:
         :param dirSurveyFolder:
@@ -309,7 +309,7 @@ def load_sandbar_data(top_level_folder: str, xml_sites) -> Dict[int, SandbarSite
                 points_path = os.path.join(sandbar_site.inputs_survey_folder, f'{sandbar_site.get_numeric_site_code()}_{survey_date:%y%m%d}_grid.txt')
 
                 # The actual files sometimes have mixed case. Get the correct version
-                points_path_corrected = getfile_insensitive(points_path)
+                points_path_corrected = get_file_insensitive(points_path)
 
                 if points_path_corrected:
                     survey_count += 1

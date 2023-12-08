@@ -286,7 +286,7 @@ class Raster:
         :return:
         """
         print('\n----------- Raw Array -----------')
-        masked = isinstance(self.array, np.ma.MaskedArray)
+        # masked = isinstance(self.array, np.ma.MaskedArray)
         for row in range(self.array.shape[0]):
             row_str = ' '.join(map(str, self.array[row])).replace('-- ', '- ').replace('nan ', '_ ')
             print(f'{row}:: {row_str}')
@@ -306,7 +306,7 @@ class Raster:
         else:
             arr = self.array
         print(f'\n----------- Array Flip: {str_flipped} -----------')
-        masked = isinstance(arr, np.ma.MaskedArray)
+        # masked = isinstance(arr, np.ma.MaskedArray)
         for row in range(arr.shape[0]):
             row_str = ' '.join(map(str, arr[row])) + ' '
             row_str = row_str.replace('-- ', '- ').replace('nan ', '_ ')

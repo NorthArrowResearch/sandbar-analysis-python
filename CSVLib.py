@@ -6,7 +6,7 @@ import numpy as np
 from logger import Logger
 
 
-def union_csv_extents(csv_files: List[str], delimiter: str = " ", cell_size: float = 1.0, padding: float = 10.0) -> tuple:
+def union_csv_extents(csv_files: List[str], delimiter: str = ' ', cell_size: float = 1.0, padding: float = 10.0) -> tuple:
     """
     Take a list of csvfiles and finds the unioned extent of them
     We are assuming csvfile points are the center of the cell so we
@@ -19,7 +19,7 @@ def union_csv_extents(csv_files: List[str], delimiter: str = " ", cell_size: flo
     :return:
     """
     cell_size = float(cell_size)
-    log = Logger("unionCSVExtents")
+    log = Logger('unionCSVExtents')
     value_extent: tuple = ()
 
     for file in csv_files:
@@ -56,6 +56,6 @@ def union_csv_extents(csv_files: List[str], delimiter: str = " ", cell_size: flo
         value_extent[2] - pad_and_shift,
         value_extent[3] + pad_and_shift
     )
-    log.debug('Corrected extent for {corrected_extent} delimited files is {len(csv_files)}')
+    log.debug(f'Corrected extent for {corrected_extent} delimited files is {len(csv_files)}')
 
     return corrected_extent
