@@ -13,10 +13,11 @@
 
 # Utility functions we need
 import unittest
-import numpy as np
-import gdal
-import shutil
 from os import path, makedirs
+import shutil
+from osgeo import ogr
+from osgeo import gdal
+import numpy as np
 
 # Here's what we're testing
 import RasterAnalysis
@@ -48,6 +49,11 @@ class TempPathHelper():
 
 
 class TestLoggerSingletonClass(unittest.TestCase):
+    """_summary_
+
+    Args:
+        unittest (_type_): _description_
+    """
 
     def test_singleton(self):
         """
@@ -126,18 +132,20 @@ class TestRasterClass(unittest.TestCase):
     """
 
     def test_Write(self):
+        """_summary_
+        """
         tmp = TempPathHelper()
         filename1 = path.join(tmp.path, 'raster1.tif')
         filename2 = path.join(tmp.path, 'raster1-neg-cell-height.tif')
-        ndVal = -9999.0
-        dataType = gdal.GDT_Float32
+        nd_val = -9999.0
+        data_type = gdal.GDT_Float32
         extent = (0, 0.4, 0, 0.3)
         proj = ""
         # Input Array. here we test lots of different kinds of values
-        inRas = np.ma.masked_array([
-            [0.0,   1,      2,      3],
-            [ndVal, np.nan, np.nan, 3],
-            [100,   200.0,    300,  500000.0]],
+        in_ras = np.ma.masked_array([
+            [0.0, 1, 2, 3],
+            [nd_val, np.nan, np.nan, 3],
+            [100, 200.0, 300, 500000.0]],
             mask=np.array([
                 [0, 0, 1, 0],
                 [0, 0, 0, 0],
@@ -145,55 +153,55 @@ class TestRasterClass(unittest.TestCase):
 
         # And here's what we expect to get back when we read the file back in:
         # NB: Note different mask and values
-        raOut = np.ma.masked_array([
-            [0.0,   1.0,     ndVal,  3.0],
-            [ndVal, ndVal,   ndVal,  3.0],
-            [100,   200.0,   300.0,  500000.0]],
+        ra_out = np.ma.masked_array([
+            [0.0, 1.0, nd_val, 3.0],
+            [nd_val, nd_val, nd_val, 3.0],
+            [100, 200.0, 300.0, 500000.0]],
             mask=np.array([
                 [0, 0, 1, 0],
                 [1, 1, 1, 0],
                 [0, 0, 0, 0]
             ]))
 
-        rIn = Raster(array=inRas, extent=extent, cellWidth=0.1,
-                     cellHeight=0.1, nodata=ndVal, proj=proj)
-        rIn.write(filename1)
+        r_in = Raster(array=in_ras, extent=extent, cellWidth=0.1,
+                      cellHeight=0.1, nodata=nd_val, proj=proj)
+        r_in.write(filename1)
 
         # Now load it into another raster object and compare the two
-        rOut = Raster(filepath=filename1)
-        # rOut.PrintRawArray()
-        # rOut.PrintArray()
-        # rOut.ASCIIPrint()
+        r_out = Raster(filepath=filename1)
+        # r_out.PrintRawArray()
+        # r_out.PrintArray()
+        # r_out.ASCIIPrint()
         # The input array equals the output array
-        self.assertTrue((rIn.array == rOut.array).all())
+        self.assertTrue((r_in.array == r_out.array).all())
         # The output array is what we expect
-        self.assertTrue((rIn.array == raOut).all())
-        self.assertTrue(rOut.nodata == ndVal)
-        self.assertTrue(rOut.proj == proj)
-        self.assertTrue(rOut.top == extent[2])
-        self.assertTrue(rOut.left == extent[0])
-        self.assertTrue(rOut.data_type == dataType)
+        self.assertTrue((r_in.array == ra_out).all())
+        self.assertTrue(r_out.nodata == nd_val)
+        self.assertTrue(r_out.proj == proj)
+        self.assertTrue(r_out.top == extent[2])
+        self.assertTrue(r_out.left == extent[0])
+        self.assertTrue(r_out.data_type == data_type)
 
         # Try again, this time with negative cell height
-        rIn2 = Raster(array=np.flipud(inRas), extent=extent,
-                      cellWidth=0.1, cellHeight=-0.1, nodata=ndVal, proj=proj)
-        rIn2.write(filename2)
+        r_in2 = Raster(array=np.flipud(in_ras), extent=extent,
+                       cellWidth=0.1, cellHeight=-0.1, nodata=nd_val, proj=proj)
+        r_in2.write(filename2)
 
         # Now load it into another raster object and compare the two
-        rOut2 = Raster(filepath=filename2)
-        # rOut2.PrintRawArray()
-        # rOut2.PrintArray()
-        # rOut2.ASCIIPrint()
-        self.assertTrue(rOut2.nodata == ndVal)
-        self.assertTrue(rOut2.proj == proj)
-        self.assertTrue(rOut2.top == extent[3])  # Top is now different
-        self.assertTrue(rOut2.left == extent[0])
-        self.assertTrue(rOut2.data_type == dataType)
+        r_out2 = Raster(filepath=filename2)
+        # r_out2.PrintRawArray()
+        # r_out2.PrintArray()
+        # r_out2.ASCIIPrint()
+        self.assertTrue(r_out2.nodata == nd_val)
+        self.assertTrue(r_out2.proj == proj)
+        self.assertTrue(r_out2.top == extent[3])  # Top is now different
+        self.assertTrue(r_out2.left == extent[0])
+        self.assertTrue(r_out2.data_type == data_type)
 
         # The input array equals the output array
-        self.assertTrue((rIn2.array == rOut2.array).all())
+        self.assertTrue((r_in2.array == r_out2.array).all())
         # The output array is what we expect
-        self.assertTrue((rIn2.array == np.flipud(raOut)).all())
+        self.assertTrue((r_in2.array == np.flipud(ra_out)).all())
 
         # Clean up any files created
         delete_raster(filename1)
@@ -262,7 +270,7 @@ class TestRasterClass(unittest.TestCase):
         gridPath = path.join(path.dirname(path.abspath(
             __file__)), 'test', 'assets', 'grids', 'grid1.txt')
         theExtent = union_csv_extents(
-            [gridPath], padding: float=padding, cell_size=cellSize)
+            [gridPath], padding, float=padding, cell_size=cellSize)
         rTest = Raster(extent=theExtent, cellWidth=cellSize)
 
         # Here's what we're testing:
@@ -302,14 +310,14 @@ class TestRasterClass(unittest.TestCase):
         gridPath2 = path.join(path.dirname(path.abspath(
             __file__)), 'test', 'assets', 'grids', 'grid2.txt')
 
-        theExtent = union_csv_extents([gridPath1, gridPath2], padding: float=0)
+        theExtent = union_csv_extents([gridPath1, gridPath2], padding, float=0)
         # Create our two grids from CSV files that we can add into the min surface
         rTest1 = Raster(extent=theExtent, cellWidth=cellSize)
         rTest1.load_dem_from_csv(gridPath1, theExtent,
-                              pt_center=Raster.PointShift.CENTER)
+                                 pt_center=Raster.PointShift.CENTER)
         rTest2 = Raster(extent=theExtent, cellWidth=cellSize)
         rTest2.load_dem_from_csv(gridPath2, theExtent,
-                              pt_center=Raster.PointShift.CENTER)
+                                 pt_center=Raster.PointShift.CENTER)
 
         # Now let's create a min surface we can use to test things
         rMinSrf = Raster(extent=theExtent, cellWidth=cellSize)
@@ -339,11 +347,11 @@ class TestRasterClass(unittest.TestCase):
 
     def test_ResampleDEM(self):
         cellSize = 1
-        ndVal = -9999.0
+        nd_val = -9999.0
         theExtent = (0, 3, 10, 12)
         theTestArray = np.ma.masked_array([
             [0.0, 1, 2, 3],
-            [ndVal, np.nan, 6, 3],
+            [nd_val, np.nan, 6, 3],
             [100, 200.0, 300, 500000.0]],
             mask=np.array([
                 [0, 0, 1, 0],
@@ -379,11 +387,11 @@ class TestRasterClass(unittest.TestCase):
         cellSize = 1
         gridPath1 = path.join(path.dirname(path.abspath(
             __file__)), 'test', 'assets', 'grids', 'realgrid.txt')
-        theExtent = union_csv_extents([gridPath1], padding: float=padding)
+        theExtent = union_csv_extents([gridPath1], padding, float=padding)
         # Create our grid from CSV file that we can add into the min surface
         rTest1 = Raster(extent=theExtent, cellWidth=cellSize)
         rTest1.load_dem_from_csv(gridPath1, theExtent,
-                              pt_center=Raster.PointShift.CENTER)
+                                 pt_center=Raster.PointShift.CENTER)
         rTest1filename = path.join(tmp.path, 'realgrid.tif')
         rTest1.write(rTest1filename)
 
@@ -431,7 +439,7 @@ class TestSandbarSite(unittest.TestCase):
         gridPath3 = path.join(currdir, 'test', 'assets', 'grids', 'grid3.txt')
 
         theExtent = union_csv_extents(
-            [gridPath1, gridPath2, gridPath3], padding: float=10)
+            [gridPath1, gridPath2, gridPath3], padding, float=10)
         self.assertTupleEqual(theExtent, (-10.5, 14.5, -0.5, 23.5))
 
 
@@ -444,13 +452,13 @@ class TestAreaVolume(unittest.TestCase):
 
     def setUp(self):
         # Input Array. here we test lots of different kinds of values
-        self.ndVal = -9999.0
+        self.nd_val = -9999.0
         self.cellSize = 0.1
 
         self.arSurf = np.ma.masked_array([
-            [10.0,   12,     self.ndVal, 13],
-            [np.nan, 18,     24.0,       3],
-            [100,    3.0,    30.0,       20.0]],
+            [10.0, 12, self.nd_val, 13],
+            [np.nan, 18, 24.0, 3],
+            [100, 3.0, 30.0, 20.0]],
             mask=np.array([
                 [0, 0, 1, 0],
                 [1, 0, 0, 0],
@@ -458,9 +466,9 @@ class TestAreaVolume(unittest.TestCase):
 
         # Set the minimum surface up with some values
         self.arMin = np.ma.masked_array([
-            [10,         0.5, 0.1, 0.002],
-            [self.ndVal, 15, 0.1, 0.003],
-            [0.0,        0.5, 20, 0.004]],
+            [10, 0.5, 0.1, 0.002],
+            [self.nd_val, 15, 0.1, 0.003],
+            [0.0, 0.5, 20, 0.004]],
             mask=np.array([
                 [0, 0, 1, 0],
                 [1, 0, 0, 0],
