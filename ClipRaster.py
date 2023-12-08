@@ -28,7 +28,7 @@ def clip_raster(gdal_warp_path: str, in_raster: str, out_raster: str, shape_file
 
     # Reset the where parameter to an empty string if no where clause is provided
     # TODO: This is giving us 64-bit rasters for some reason and a weird nodata value with nan as well. We're probably losing precision somewhere
-    where_param = "-cwhere \"{where_clause}\"" if len(where_clause) > 0 else ''
+    where_param = f"-cwhere \"{where_clause}\"" if len(where_clause) > 0 else ''
 
     gdal_args = f' -cutline {shape_file} {where_param} {in_raster} {out_raster}'
     log.debug('RUNNING GdalWarp: ' + gdal_warp_path + gdal_args)

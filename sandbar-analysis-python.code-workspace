@@ -40,6 +40,9 @@
 			"--ignore=E501",
 			"--max-line-length=240",
 		],
+		"github.copilot.enable": {
+			"markdown": "true"
+		},
 	},
 	"extensions": {
 		"recommendations": [

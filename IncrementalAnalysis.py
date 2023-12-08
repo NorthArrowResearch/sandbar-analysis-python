@@ -28,24 +28,24 @@ def run_incremental_analysis(sites: Dict[int, SandbarSite], elev_benchmark: floa
     for site in sites.values():
 
         # Only process sites that have computation extent polygons
-        if site.Ignore:
+        if site.ignore:
             continue
 
-        log.info(f'Incremental analysis on site {site.siteCode5} with {len(site.surveyDates)} surveys.')
+        log.info(f'Incremental analysis on site {site.site_code5} with {len(site.surveys)} surveys.')
 
-        for survey_date in site.surveyDates.values():
+        for survey in site.surveys.values():
 
             # Only proceed with this survey if it is flagged to be apart of the analysis.
-            if not survey_date.IsAnalysis:
+            if survey.is_analysis is False:
                 continue
 
-            for section in survey_date.surveyedSections.values():
+            for section in survey.surveyed_sections.values():
 
                 # Only process sections that have computation extent polygons
-                if section.Ignore:
+                if section.ignore:
                     continue
 
-                log.debug('Incremental on site {site.siteCode5}, survey {survey_date.SurveyDate.strftime("%Y-%m-%d")}, {section.SectionType} {section.rasterPath}')
+                log.debug(f'Incremental on site {site.site_code5}, survey {survey.survey_date.strftime("%Y-%m-%d")}, {section.section_type} {section.raster_path}')
 
                 # Run the analysis on this section and get back a list of tuples (Elevation, Area, Volume)
                 section_results = run_section(site, section, elev_benchmark, elev_increment, cell_size)
@@ -56,22 +56,16 @@ def run_incremental_analysis(sites: Dict[int, SandbarSite], elev_benchmark: floa
                 else:
                     # Append the results to the master list that will be written to the output CSV file
                     for (elevation, area, vol) in section_results:
-                        model_results.append((site.siteID, site.siteCode5, survey_date.SurveyID,
-                                              survey_date.SurveyDate.strftime(
-                                                  "%Y-%m-%d"),
-                                              section.SectionTypeID, section.SectionType,
-                                              section.SectionID, f'{elevation:.2f}', area, vol))
+                        model_results.append((site.site_id, site.site_code5, survey.survey_id,
+                                              survey.survey_date.strftime('%Y-%m-%d'),
+                                              section.section_type_id, section.section_type,
+                                              section.section_id, f'{elevation:.2f}', area, vol))
 
     log.info(f'Incremental analysis complete. Writing {len(model_results)} results to {result_file_path}')
 
-    with open(result_file_path, 'wb') as out:
+    with open(result_file_path, 'w', encoding='utf8') as out:
         csv_out = csv.writer(out)
-
-        # Header row
-        csv_out.writerow(['siteid', 'sitecode', 'surveyid', 'surveydate', 'sectiontypeid', 'section',
-                          'sectionid', 'elevation', 'area', 'volume'])
-
-        # Write the tuple of analysis results
+        csv_out.writerow(['siteid', 'sitecode', 'surveyid', 'surveydate', 'sectiontypeid', 'section', 'sectionid', 'elevation', 'area', 'volume'])
         for row in model_results:
             csv_out.writerow(row)
 

@@ -2,11 +2,9 @@
 Computational extents represents a ShapeFile containing polygons that define the computational
 extents for each site. The ShapeFile must contain a field named 'Site' that contains the site code
 """
-from typing import Dict
 import os
 from osgeo import osr, ogr
 from logger import Logger
-from SandbarSite import SandbarSite
 
 SITE_CODE_FIELD = 'Site'
 SECTION_FIELD = 'Section'
@@ -92,45 +90,6 @@ class ComputationExtents:
 
         section_where = section_where.replace(" ", "")
         return f"(\"{SITE_CODE_FIELD}\" ='{site_code}')  AND (\"{SECTION_FIELD}\"='{section_where}')"
-
-    def validate_site_codes(self, sites: Dict[int, SandbarSite]) -> None:
-        """
-        Validates that at least one feature for each site can be found
-        Pass in a list SandbarSite objects.
-        :param lSites:
-        :return:
-        """
-        driver = ogr.GetDriverByName('ESRI Shapefile')
-        # 0 means read-only. 1 means writeable.
-        data_source = driver.Open(self.full_path, 0)
-        layer = data_source.GetLayer()
-
-        for site in sites.values():
-            layer.SetAttributeFilter(f"{SITE_CODE_FIELD} = '{site.site_code5}'")
-            feature_count = layer.GetFeatureCount()
-            missing_sections = {}
-
-            if feature_count >= 1:
-                # Loop over all surveys and ensure that each section also occurs in the ShapeFile
-                for survey_date in site.surveys.values():
-                    for section in survey_date.surveyed_sections.values():
-
-                        layer.SetAttributeFilter(self.get_filter_clause(site.site_code5, section.section_type))
-                        feature_count = layer.GetFeatureCount()
-
-                        if feature_count < 1:
-                            section.ignore = True
-                            missing_sections[section.section_type] = "missing"
-
-                # Now report just once for any missing sections for this site
-                for section_type in missing_sections:
-                    self.log.warning(f"Site {site.site_code5} missing polygon feature for section type '{section_type}'. This section will not be processed for any surveys at this site.")
-            else:
-                site.ignore = True
-                self.log.warning(f'Site {site.site_code5} missing polygon feature(s) in computational extent ShapeFile. This site will not be processed.')
-
-        self.log.info(f'Computation extents ShapeFile confirmed to contain at least one polygon for all {len(sites)} sandbar site(s) loaded.')
-
 
 # def get_extents(feature: ogr.Feature) -> tuple:
 #     """

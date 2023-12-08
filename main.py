@@ -8,7 +8,7 @@ from logger import Logger
 
 from AnalysisBin import load_analysis_bins
 from ComputationExtents import ComputationExtents
-from SandbarSite import load_sandbar_data
+from SandbarSite import load_sandbar_data, validate_site_codes
 # from SectionTypes import load_section_types
 from IncrementalAnalysis import run_incremental_analysis
 from BinnedAnalysis import run_binned_analysis
@@ -39,13 +39,13 @@ def main(conf: dict) -> None:
 
     # Load the ShapeFile containing computational extent polygons for sandbar sites
     # Validate all sites have polygon extent features in this ShapeFile.
-    comp_extent_shp = ComputationExtents(conf['CompExtentShpPath'], conf['srsEPSG'])
-    comp_extent_shp.validate_site_codes(sites)
+    comp_extent = ComputationExtents(conf['CompExtentShpPath'], conf['srsEPSG'])
+    validate_site_codes(comp_extent, sites)
 
     # Create the DEM rasters and then clip them to the sandbar sections
     raster_preparation(sites, conf['AnalysisFolder'], conf['CSVCellSize'], conf['RasterCellSize'],
                        conf['ResampleMethod'], conf['srsEPSG'], conf['ReUseRasters'], conf['GDALWarp'],
-                       comp_extent_shp)
+                       comp_extent)
 
     # prepare result file paths
     inc_results_path = os.path.join(conf['AnalysisFolder'], conf['IncrementalResults'])

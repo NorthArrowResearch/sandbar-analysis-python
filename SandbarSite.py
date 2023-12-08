@@ -6,7 +6,7 @@ import os
 from typing import Dict
 from math import ceil, isnan
 from datetime import datetime
-from osgeo import gdal
+from osgeo import ogr
 import numpy as np
 from Raster import Raster
 from CSVLib import union_csv_extents
@@ -14,6 +14,7 @@ from logger import Logger
 from ClipRaster import clip_raster
 from SandbarSurvey import SandbarSurvey, get_file_insensitive
 from SandbarSurveySection import SandbarSurveySection
+from ComputationExtents import ComputationExtents, SITE_CODE_FIELD
 
 
 class SandbarSite:
@@ -38,7 +39,7 @@ class SandbarSite:
         self.dis_coefficient_c = discharge_c
         self.inputs_survey_folder = survey_folder
 
-        self.surveys = {}
+        self.surveys: Dict[int, SandbarSurvey] = {}
 
         self.log = Logger("Sandbar Site")
 
@@ -74,6 +75,10 @@ class SandbarSite:
         :param analysisIncrement:
         :return:
         """
+
+        if isnan(min_survey_elev):
+            return None
+
         benchmark_stage = self.get_stage(benchmark_discharge)
         min_analysis_stage = benchmark_stage - ceil((benchmark_stage - min_survey_elev) / analysis_increment) * analysis_increment
 
@@ -165,7 +170,7 @@ class SandbarSite:
 
         assert os.path.isfile(self.min_surface_path), f'Minimum surface raster is missing for site {self.site_code5} at {self.min_surface_path}'
 
-    def clip_dem_rasters_to_sections(self, gdal_warp: str, survey_folder: str, comp_extent, reuse_rasters: bool) -> None:
+    def clip_dem_rasters_to_sections(self, gdal_warp: str, survey_folder: str, comp_extent: ComputationExtents, reuse_rasters: bool) -> None:
         """
         :param gdal_warp:
         :param dirSurveyFolder:
@@ -185,8 +190,8 @@ class SandbarSite:
                     continue
 
                 sections_count += 1
-                section_folder = section.Section_type
-                hypthon = section.Section_type.find("-")
+                section_folder = section.section_type
+                hypthon = section.section_type.find("-")
                 if hypthon >= 0:
                     section_folder = section.section_type.replace(" ", "").replace("-", "_")
 
@@ -201,8 +206,8 @@ class SandbarSite:
 
                     # This clause ensures that only the desired features are
                     # used for the clipping
-                    where_clause = comp_extent.get_filter_clause(self.site_code5, section.Section_type)
-                    clip_raster(gdal_warp, survey.dem_path, clipped_path, comp_extent, where_clause)
+                    where_clause = comp_extent.get_filter_clause(self.site_code5, section.section_type)
+                    clip_raster(gdal_warp, survey.dem_path, clipped_path, comp_extent.full_path, where_clause)
 
                 # Store the clipped raster in a dictionary on the survey date
                 # objects
@@ -283,7 +288,7 @@ def load_sandbar_data(top_level_folder: str, xml_sites) -> Dict[int, SandbarSite
 
     log = Logger("Load Sandbars")
 
-    sites = {}
+    sites: Dict[int, SandbarSite] = {}
 
     survey_count = 0
     analysis_count = 0
@@ -345,6 +350,48 @@ def load_sandbar_data(top_level_folder: str, xml_sites) -> Dict[int, SandbarSite
     log.info(f'{survey_count} total surveys loaded from the input XML. {analysis_count} for analysis and {min_surface_count} for minimum surface.')
 
     return sites
+
+
+def validate_site_codes(comp_extent: ComputationExtents, sites: Dict[int, SandbarSite]) -> None:
+    """
+    Validates that at least one feature for each site can be found
+    Pass in a list SandbarSite objects.
+    :param lSites:
+    :return:
+    """
+
+    log = Logger('Validate Site Codes')
+
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    # 0 means read-only. 1 means writeable.
+    data_source = driver.Open(comp_extent.full_path, 0)
+    layer = data_source.GetLayer()
+
+    for site in sites.values():
+        layer.SetAttributeFilter(f"{SITE_CODE_FIELD} = '{site.site_code5}'")
+        feature_count = layer.GetFeatureCount()
+        missing_sections = {}
+
+        if feature_count >= 1:
+            # Loop over all surveys and ensure that each section also occurs in the ShapeFile
+            for survey_date in site.surveys.values():
+                for section in survey_date.surveyed_sections.values():
+
+                    layer.SetAttributeFilter(comp_extent.get_filter_clause(site.site_code5, section.section_type))
+                    feature_count = layer.GetFeatureCount()
+
+                    if feature_count < 1:
+                        section.ignore = True
+                        missing_sections[section.section_type] = "missing"
+
+            # Now report just once for any missing sections for this site
+            for section_type in missing_sections:
+                log.warning(f"Site {site.site_code5} missing polygon feature for section type '{section_type}'. This section will not be processed for any surveys at this site.")
+        else:
+            site.ignore = True
+            log.warning(f'Site {site.site_code5} missing polygon feature(s) in computational extent ShapeFile. This site will not be processed.')
+
+    log.info(f'Computation extents ShapeFile confirmed to contain at least one polygon for all {len(sites)} sandbar site(s) loaded.')
 
 
 # def get_raster_txt_path(top_level_folder: str, input_ascii_grids: str, site: SandbarSite, survey_date):

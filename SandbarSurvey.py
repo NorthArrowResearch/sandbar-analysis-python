@@ -1,7 +1,9 @@
 """
 Class defining an individual sandbar survey
 """
+from typing import Dict
 import os
+from SandbarSurveySection import SandbarSurveySection
 
 
 class SandbarSurvey:
@@ -22,7 +24,7 @@ class SandbarSurvey:
         self.is_min_surface = is_min_surface
 
         # dictionary of section types that are part of this survey. Index is SectionTypeID
-        self.surveyed_sections = {}
+        self.surveyed_sections: Dict[int, SandbarSurveySection] = {}
 
     # def get_points_layer_name(self):
     #     """

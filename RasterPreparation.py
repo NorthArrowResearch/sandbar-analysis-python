@@ -5,6 +5,7 @@ from typing import Dict
 import os.path
 from logger import Logger
 from SandbarSite import SandbarSite
+from ComputationExtents import ComputationExtents
 
 
 def raster_preparation(
@@ -16,7 +17,7 @@ def raster_preparation(
         epsg: int,
         reuse_rasters: bool,
         gdal_warp: str,
-        comp_extent_shp: str) -> None:
+        comp_extent: ComputationExtents) -> None:
     """
     Build rasters from the CSV files
     :param sites: Dictionary of all SandbarSite objects to be processed.
@@ -53,7 +54,7 @@ def raster_preparation(
 
         # Convert the TXT files to GeoTIFFs
         site.generate_dem_rasters(survey_folder, csv_cell_size, raster_cell_size, resample_method, epsg, reuse_rasters)
-        site.clip_dem_rasters_to_sections(gdal_warp, survey_folder, comp_extent_shp, reuse_rasters)
+        site.clip_dem_rasters_to_sections(gdal_warp, survey_folder, comp_extent, reuse_rasters)
 
         elevation8k = site.get_stage(8000)
         elevation25k = site.get_stage(25000)
