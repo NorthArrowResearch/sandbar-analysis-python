@@ -1,7 +1,6 @@
 """
 Run the binned analysis
 """
-
 import csv
 from typing import Dict, List
 from RasterAnalysis import get_vol_and_area

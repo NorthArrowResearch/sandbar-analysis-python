@@ -26,14 +26,6 @@ class SandbarSurvey:
         # dictionary of section types that are part of this survey. Index is SectionTypeID
         self.surveyed_sections: Dict[int, SandbarSurveySection] = {}
 
-    # def get_points_layer_name(self):
-    #     """
-    #     Return the layer name for the txt Points file. This should
-    #     be the base file name of the txt file. Note that GDAL expects
-    #     this string as ASCII and not unicode.
-    #     """
-    #     return os.path.splitext(os.path.basename(self.points_path))[0].encode('ascii', 'ignore')
-
 
 def get_file_insensitive(path: str) -> str or None:
     """
@@ -48,10 +40,3 @@ def get_file_insensitive(path: str) -> str or None:
             return newpath
 
     return None
-
-
-# def isfile_insensitive(path: str) -> bool:
-#     """
-#     Return true if the file exists in a case-insensitive manner
-#     """
-#     return getfile_insensitive(path) is not None

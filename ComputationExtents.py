@@ -90,30 +90,3 @@ class ComputationExtents:
 
         section_where = section_where.replace(" ", "")
         return f"(\"{SITE_CODE_FIELD}\" ='{site_code}')  AND (\"{SECTION_FIELD}\"='{section_where}')"
-
-# def get_extents(feature: ogr.Feature) -> tuple:
-#     """
-#     Return the extents of an OGR feature
-#     :param feature: OGR feature to get extents from
-#     :return: The bounding envelope tuple of the feature
-#     """
-#     geometry = feature.GetGeometryRef()
-#     return geometry.GetEnvelope()
-
-
-# def extent_union(old_extents: tuple, new_extents: tuple) -> tuple:
-#     """
-#     Union two tuples representing a bounding triangle (x1, x2, y1, y2, n)
-#     n is the collected number of features in the extent (this is mostly for fun)
-#     :param oldExtents:
-#     :param newExtents:
-#     :return:
-#     """
-#     x1 = old_extents[0] if old_extents[0] < new_extents[0] else new_extents[0]
-#     x2 = old_extents[1] if old_extents[1] > new_extents[1] else new_extents[1]
-
-#     y1 = old_extents[2] if old_extents[2] < new_extents[2] else new_extents[2]
-#     y2 = old_extents[3] if old_extents[3] > new_extents[3] else new_extents[3]
-
-#     new_n = old_extents[4] + 1
-#     return (x1, x2, y1, y2, new_n)

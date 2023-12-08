@@ -1,5 +1,5 @@
 """
- Calculates the volume for a survey raster and minimum surface. If lower elevation is
+Calculates the volume for a survey raster and minimum surface. If lower elevation is
 null then the calculation is up to the upper elevation. If the upper elevation is null
 then the analysis is above the lower elevation. If both are valid then the analysis is
 greater than or equal to the lower elevation and less than the upper elevation. i.e.

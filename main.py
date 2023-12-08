@@ -9,7 +9,6 @@ from logger import Logger
 from AnalysisBin import load_analysis_bins
 from ComputationExtents import ComputationExtents
 from SandbarSite import load_sandbar_data, validate_site_codes
-# from SectionTypes import load_section_types
 from IncrementalAnalysis import run_incremental_analysis
 from BinnedAnalysis import run_binned_analysis
 from RasterPreparation import raster_preparation
@@ -31,9 +30,7 @@ def main(conf: dict) -> None:
 
     Logger('Initializing')
 
-    # Load a dictionary of SandbarSites and their surveys from the workbench
-    # database for the sites that need to be processed.
-    # section_types = load_section_types(config['SectionTypes'])
+    # Load a dictionary of SandbarSites and their surveys from the workbench database
     analysis_bins = load_analysis_bins(conf['AnalysisBins'])
     sites = load_sandbar_data(conf['TopLevelFolder'], conf['Sites'])
 

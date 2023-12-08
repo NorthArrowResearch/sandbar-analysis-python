@@ -216,44 +216,6 @@ class SandbarSite:
 
         self.log.info(f'Site {self.site_code5}: Clipped {clipped_count} rasters across {len(self.surveys)} surveys and {sections_count} sections defined')
 
-    # def getElevationRange(self, dSections):
-    #     """
-    #     :param dSections:
-    #     :return:
-    #     """
-    #     minElevation = -1.0
-    #     maxElevation = 0.0
-    #     for SurveyID, aDate in self.surveys.items():
-    #         for nSectionTypeID, aSurveyedSection in aDate.surveyedSections.iteritems():
-
-    #             dsRaster = gdal.Open(aSurveyedSection.rasterPath)
-    #             rbRaster = dsRaster.GetRasterBand(1)
-    #             rasStats = rbRaster.GetStatistics(0, 1)
-
-    #             # The clipped DEMs might not have any data in the section
-    #             # (channel or eddy)
-    #             # in which case the stats returns all zeroes
-
-    #             if rasStats[0] and rasStats[0] > 0:
-    #                 if minElevation < 0:
-    #                     minElevation = rasStats[0]
-    #                 else:
-    #                     minElevation = min(minElevation, rasStats[0])
-
-    #             if rasStats[1] and rasStats[1] > 0:
-    #                 maxElevation = max(maxElevation, rasStats[1])
-
-    #             rb = None
-    #             dsRaster = None
-
-    #     assert minElevation > 500, "The minimum elevation ({0}) is too low.".format(
-    #         minElevation)
-    #     assert maxElevation >= minElevation, "The maximum elevation ({0}) is below the minimum elevation ({1}).".format(
-    #         maxElevation, minElevation)
-    #     self.log.info("Site {0} elevation range (across {1} surveys) is {2}".format(
-    #         self.site_code5, len(self.surveys), (minElevation, maxElevation)))
-    #     return (minElevation, maxElevation)
-
     def verify_txt_file_format(self):
         """
         Verify that the text files for all surveys at this site are correctly formatted
@@ -392,21 +354,3 @@ def validate_site_codes(comp_extent: ComputationExtents, sites: Dict[int, Sandba
             log.warning(f'Site {site.site_code5} missing polygon feature(s) in computational extent ShapeFile. This site will not be processed.')
 
     log.info(f'Computation extents ShapeFile confirmed to contain at least one polygon for all {len(sites)} sandbar site(s) loaded.')
-
-
-# def get_raster_txt_path(top_level_folder: str, input_ascii_grids: str, site: SandbarSite, survey_date):
-#     """
-
-#     :param dirTopLevelFolder:
-#     :param dirInputASCIIGrids:
-#     :param aSite:
-#     :param dtSurveyDate:
-#     :return:
-#     """
-#     txtPath = os.path.join(top_level_folder, input_ascii_grids, site.siteCode + "corgrids", '{site.getNumericSiteCode()}_{survey_date:%y%m%d}_grid.txt')
-#     casePath = ""  # getfile_insensitive(txtPath)
-
-#     if casePath and os.path.isfile(casePath):
-#         return casePath
-#     else:
-#         return None
