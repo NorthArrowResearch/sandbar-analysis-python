@@ -269,7 +269,7 @@ class Raster:
             outband.WriteArray(self.array)
 
         spatial_ref = osr.SpatialReference()
-        if (self.proj == ""):
+        if self.proj == '':
             spatial_ref.ImportFromEPSG(4326)
         else:
             spatial_ref.ImportFromWkt(self.proj)

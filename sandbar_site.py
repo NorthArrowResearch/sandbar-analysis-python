@@ -243,7 +243,7 @@ def load_sandbar_data(top_level_folder: str, xml_sites) -> Dict[int, SandbarSite
     :return: Dictionary of sandbar sites to be processed. Key is SiteID, value is SandbarSite object
 
     Note that the sandbar site ASCII grids are currently found using the 4 digit site identifiers. This is how
-    GCMRC currently stores them. e.g. ...\corgrids\003Lcorgrids But the goal is to improve this structure
+    GCMRC currently stores them. e.g. .../corgrids/003Lcorgrids But the goal is to improve this structure
     and enforce all sandbar data to be stored using 5 digit identifiers. The code below will need changing
     when this change is made.
     """

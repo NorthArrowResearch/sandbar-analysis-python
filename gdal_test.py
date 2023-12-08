@@ -14,7 +14,7 @@ from os import makedirs
 import shutil
 import numpy as np
 from osgeo import gdal
-from Raster import Raster
+from raster import Raster
 
 
 class TempPathHelper():
