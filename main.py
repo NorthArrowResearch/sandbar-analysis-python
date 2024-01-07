@@ -44,13 +44,14 @@ def main(conf: dict) -> None:
                        conf['ResampleMethod'], conf['srsEPSG'], conf['ReUseRasters'], conf['GDALWarp'],
                        comp_extent)
 
-    # prepare result file paths
-    inc_results_path = os.path.join(conf['AnalysisFolder'], conf['IncrementalResults'])
-    bin_results_path = os.path.join(conf['AnalysisFolder'], conf['BinnedResults'])
-
     # Run the analyses
-    run_incremental_analysis(sites, conf['ElevationBenchmark'], conf['ElevationIncrement'], conf['RasterCellSize'], inc_results_path)
-    run_binned_analysis(sites, analysis_bins, conf['RasterCellSize'], bin_results_path)
+    if 'IncrementalResults' in conf and conf['IncrementalResults'] is not None:
+        inc_results_path = os.path.join(conf['AnalysisFolder'], conf['IncrementalResults'])
+        run_incremental_analysis(sites, conf['ElevationBenchmark'], conf['ElevationIncrement'], conf['RasterCellSize'], inc_results_path)
+
+    if 'BinnedResults' in conf and conf['BinnedResults'] is not None:
+        bin_results_path = os.path.join(conf['AnalysisFolder'], conf['BinnedResults'])
+        run_binned_analysis(sites, analysis_bins, conf['RasterCellSize'], bin_results_path)
 
     log.info('Sandbar analysis process complete.')
 
