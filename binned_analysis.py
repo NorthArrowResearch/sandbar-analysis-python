@@ -48,8 +48,7 @@ def run_binned_analysis(
 
                     for anal_bin in analysis_bins.values():
 
-                        # Get the lower and upper elevations for the discharge.  Either
-                        # could be None
+                        # Get the lower and upper elevations for the discharge. Either could be None
                         lower_elev = site.get_stage(anal_bin.lower_discharge)
                         upper_elev = site.get_stage(anal_bin.upper_discharge)
 
