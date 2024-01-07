@@ -164,6 +164,15 @@ class Raster:
 
         self.set_array(min_arr)
 
+    def merge_max_surface(self, arr_dem: np.array) -> None:
+        """
+        :param rDEM:
+        :return:
+        """
+
+        max_arr = np.ma.masked_invalid(np.fmax(self.array.data, arr_dem.array.data))
+        self.set_array(max_arr)
+
     def resample_dem(self, new_cell_size: float, method: str) -> Type['Raster']:
         """
         Resample the raster and return a new resampled raster

@@ -46,6 +46,9 @@ class SandbarSite:
         self.min_surface_path = ''  # populated by GenerateDEMRasters()
         self.min_surface = None
 
+        self.max_surface_path = ''  # populated by GenerateDEMRasters()
+        self.max_surface = None
+
         # This is set to true if issues occur with the site and it can't be processed.
         self.ignore = False
 
@@ -129,6 +132,11 @@ class SandbarSite:
         self.min_surface = Raster(proj=epsg, extent=the_extent, cellWidth=cell_size)
         self.min_surface.set_array(np.nan * np.empty((self.min_surface.rows, self.min_surface.cols)))
 
+        # Initialize the Maximum Surface Raster and give it an array of appropriate size
+        self.max_surface_path = os.path.join(survey_folder, f'{self.site_code5}_max_surface.tif')
+        self.max_surface = Raster(proj=epsg, extent=the_extent, cellWidth=cell_size)
+        self.max_surface.set_array(np.nan * np.empty((self.max_surface.rows, self.max_surface.cols)))
+
         for survey in self.surveys.values():
 
             survey.dem_path = os.path.join(dem_folder, f'{self.site_code5}_{survey.survey_date:%Y%m%d}_dem.tif')
@@ -150,6 +158,7 @@ class SandbarSite:
                 # Only incorporate the DEM into the analysis if required
                 if survey.is_min_surface:
                     self.min_surface.merge_min_surface(new_dem)
+                    self.max_surface.merge_max_surface(new_dem)
 
                 new_dem.write(survey.dem_path)
             else:
@@ -158,18 +167,23 @@ class SandbarSite:
                 # Only incorporate the DEM into the analysis if required
                 if survey.is_min_surface:
                     self.min_surface.merge_min_surface(dem_raster)
+                    self.max_surface.merge_max_surface(dem_raster)
 
                 # Write the raw DEM object
                 dem_raster.write(survey.dem_path)
 
             assert os.path.isfile(survey.dem_path), f'Failed to generate raster for site {self.site_code5} at {survey.dem_path}'
 
-        # write the minimum surface raster to file
+        # write the minimum and maximum surfaces raster to file
         if not reuse_rasters:
             assert self.min_surface is not None, f'Error generating minimum surface raster for site {self.site_code5}'
             self.min_surface.write(self.min_surface_path)
 
+            assert self.max_surface is not None, f'Error generating maximum surface raster for site {self.site_code5}'
+            self.max_surface.write(self.max_surface_path)
+
         assert os.path.isfile(self.min_surface_path), f'Minimum surface raster is missing for site {self.site_code5} at {self.min_surface_path}'
+        assert os.path.isfile(self.max_surface_path), f'Maximum surface raster is missing for site {self.site_code5} at {self.max_surface_path}'
 
     def clip_dem_rasters_to_sections(self, gdal_warp: str, survey_folder: str, comp_extent: ComputationExtents, reuse_rasters: bool) -> None:
         """
