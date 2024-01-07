@@ -31,7 +31,7 @@ def get_vol_and_area(ar_survey: np.array, ar_minimum: np.array, lower_elev: floa
         assert upper_elev >= 0, 'The upper elevation ({upper_elev}) must be greater than or equal to zero.'
 
     # Only proceed and calculate the area and volume if the survey is not entirely masked.
-    # This shouldn't be needed, b the Workbench might have sections for surveys where no data were collected.
+    # This shouldn't be needed, but the Workbench might have sections for surveys where no data were collected.
     if np.ma.MaskedArray.count(ar_survey) == 0:
         return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
@@ -57,10 +57,8 @@ def get_vol_and_area(ar_survey: np.array, ar_minimum: np.array, lower_elev: floa
         survey_above_upper = get_above_elev(ar_survey, upper_elev, cell_size)
         min_surf_above_upper = get_above_elev(ar_new_min_srf, upper_elev, cell_size)
 
-    survey_net_vol = survey_above_lower['volume'] - \
-        survey_above_upper['volume']
-    min_surf_net_vol = min_surf_above_lower['volume'] - \
-        min_surf_above_upper['volume']
+    survey_net_vol = survey_above_lower['volume'] - survey_above_upper['volume']
+    min_surf_net_vol = min_surf_above_lower['volume'] - min_surf_above_upper['volume']
     net_volume = survey_net_vol - min_surf_net_vol
 
     area = survey_above_lower['area'] - survey_above_upper['area']
