@@ -30,7 +30,8 @@ def load_config(xml_file: str) -> dict:
     for the_tag in tags:
         if the_tag.tag == 'Sites' \
                 or the_tag.tag == 'SectionTypes' \
-                or the_tag.tag == 'AnalysisBins':
+                or the_tag.tag == 'AnalysisBins' \
+                or the_tag.tag == 'CampsiteBins':
 
             config[the_tag.tag] = the_tag
 

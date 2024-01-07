@@ -32,6 +32,7 @@ def main(conf: dict) -> None:
 
     # Load a dictionary of SandbarSites and their surveys from the workbench database
     analysis_bins = load_analysis_bins(conf['AnalysisBins'])
+    campsite_bins = load_analysis_bins(conf['CampsiteBins'])
     sites = load_sandbar_data(conf['TopLevelFolder'], conf['Sites'])
 
     # Load the ShapeFile containing computational extent polygons for sandbar sites
@@ -44,14 +45,20 @@ def main(conf: dict) -> None:
                        conf['ResampleMethod'], conf['srsEPSG'], conf['ReUseRasters'], conf['GDALWarp'],
                        comp_extent)
 
-    # Run the analyses
+    # Incremental Analysis
     if 'IncrementalResults' in conf and conf['IncrementalResults'] is not None:
         inc_results_path = os.path.join(conf['AnalysisFolder'], conf['IncrementalResults'])
         run_incremental_analysis(sites, conf['ElevationBenchmark'], conf['ElevationIncrement'], conf['RasterCellSize'], inc_results_path)
 
+    # Binned Analysis
     if 'BinnedResults' in conf and conf['BinnedResults'] is not None:
         bin_results_path = os.path.join(conf['AnalysisFolder'], conf['BinnedResults'])
         run_binned_analysis(sites, analysis_bins, conf['RasterCellSize'], bin_results_path)
+
+    # Campsite Analysis
+    if 'CampsiteResults' in conf and conf['CampsiteResults'] is not None:
+        campsite_results_path = os.path.join(conf['AnalysisFolder'], conf['CampsiteResults'])
+        run_binned_analysis(sites, campsite_bins, conf['RasterCellSize'], campsite_results_path)
 
     log.info('Sandbar analysis process complete.')
 
