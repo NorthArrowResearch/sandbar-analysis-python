@@ -135,6 +135,7 @@ class SandbarSite:
 
             # option to skip that speeds up debugging
             if os.path.isfile(survey.dem_path) and reuse_rasters:
+                self.log.info(f'Reusing existing raster at {survey.dem_path}')
                 continue
 
             # Create a raster object that will represent the raw CSV
