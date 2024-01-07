@@ -53,19 +53,29 @@ def run_binned_analysis(
                         lower_elev = site.get_stage(anal_bin.lower_discharge)
                         upper_elev = site.get_stage(anal_bin.upper_discharge)
 
+                        # Get volume and area between the surveyed surface and minimum surface
                         area_vol = get_vol_and_area(survey_raster.array, site.min_surface.array, lower_elev, upper_elev, cell_size)
+
+                        # Get the volume and area between the maximum surface and minimum surface
+                        # This is only needed for the 8-25k and above 25k bins
+                        maxmin_area_vol = (None, None, None, None, None, None)
+                        if lower_elev is not None:
+                            maxmin_area_vol = get_vol_and_area(site.max_surface.array, site.min_surface.array, lower_elev, upper_elev, cell_size)
 
                         model_results.append((site_id, site.site_code5, survey_id, survey_date.survey_date.strftime('%Y-%m-%d'),
                                              section.section_type_id, section.section_type, section.section_id,
-                                             anal_bin.bin_id, anal_bin.title, area_vol[0], area_vol[1], area_vol[2], area_vol[3], area_vol[4], area_vol[5]))
+                                             anal_bin.bin_id, anal_bin.title,
+                                             area_vol[0], area_vol[1], area_vol[2], area_vol[3], area_vol[4], area_vol[5],
+                                             maxmin_area_vol[0], maxmin_area_vol[1]))
 
     # Write the binned results to CSV
     log.info(f'Binned analysis complete. Writing {len(model_results)} results to {result_file_path}')
 
     with open(result_file_path, 'w', encoding='utf8') as out:
         csv_out = csv.writer(out)
-        csv_out.writerow(['siteid', 'sitecode', 'surveyid', 'surveydate', 'sectiontypeid', 'sectiontype', 'sectionid',
-                         'binid', 'bin', 'area', 'volume', 'surveyvol', 'minsurfarea', 'minsurfvol', 'netminsurfvol'])
+        csv_out.writerow(['siteid', 'sitecode', 'surveyid', 'surveydate', 'sectiontypeid', 'sectiontype', 'sectionid', 'binid', 'bin',
+                          'area', 'volume', 'surveyvol', 'minsurfarea', 'minsurfvol', 'netminsurfvol',
+                          'maxminsurfarea', 'maxminsurfvol'])
 
         for row in model_results:
             csv_out.writerow(row)
