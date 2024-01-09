@@ -29,6 +29,18 @@
                 "${workspaceFolder}/XML/input.xml",
                 "--verbose"
             ]
+        },
+        {
+            "name": "Merge Campsite ShapeFiles",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/merge_campsite_shapefiles.py",
+            "envFile": "${workspaceFolder}/.env",
+            "args": [
+                "/Users/philipbailey/GISData/gcmrc/campsites_2023",
+                "/Users/philipbailey/GISData/gcmrc/campsites_2023/campsites_2023.shp"
+            ]
         }
     ]
 }
