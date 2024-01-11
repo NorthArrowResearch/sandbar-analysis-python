@@ -11,6 +11,7 @@ from computation_extents import ComputationExtents
 from sandbar_site import load_sandbar_data, validate_site_codes
 from incremental_analysis import run_incremental_analysis
 from binned_analysis import run_binned_analysis
+from campsite_analysis import run_campsite_analysis
 from raster_preparation import raster_preparation
 
 from config_loader import load_config
@@ -58,7 +59,15 @@ def main(conf: dict) -> None:
     # Campsite Analysis
     if 'CampsiteResults' in conf and conf['CampsiteResults'] is not None:
         campsite_results_path = os.path.join(conf['AnalysisFolder'], conf['CampsiteResults'])
-        run_binned_analysis(sites, campsite_bins, conf['RasterCellSize'], campsite_results_path)
+        run_campsite_analysis(
+            conf['CampsiteFolder'],
+            sites,
+            conf['AnalysisFolder'],
+            campsite_bins,
+            conf['RasterCellSize'],
+            campsite_results_path,
+            conf['GDALWarp'],
+            conf['ReUseRasters'])
 
     log.info('Sandbar analysis process complete.')
 
