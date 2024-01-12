@@ -8,7 +8,8 @@ import csv
 import math
 from datetime import datetime
 from osgeo import ogr
-from raster_analysis import get_vol_and_area
+from raster import Raster
+from raster_analysis import get_bin_area
 from logger import Logger
 from sandbar_site import SandbarSite
 from analysis_bin import AnalysisBin
@@ -33,52 +34,103 @@ def run_campsite_analysis(
         gdal_warp: str,
         reuse_rasters: bool) -> None:
     """
-    Run the binned analysis
+    Run the binned campsite analysis
     """
 
-    model_results: List[tuple] = []
     log = Logger('Campsite Analysis')
     log.info('Starting campsite analysis...')
 
+    model_results: List[Tuple[int, int, str, int, float, float, float]] = []
     for site_id, site in sites.items():
+        for survey_id, survey in site.surveys.items():
 
-        campsite_folder = os.path.join(campsite_parent_folder, site.site_code)
-        campsite_surveys = get_campsite_surveys(campsite_folder)
+            # Find the most appropriate campsite survey for this sandbar survey
+            campsite_shapefile = get_campsite_shapefile(campsite_parent_folder, site.site_code, survey.survey_date)
 
-        if len(campsite_surveys) < 1:
-            continue
+            if campsite_shapefile is None:
+                log.info('No campsite ShapeFile found for site {site.site_code5} and survey date {survey_date.survey_date}')
+                continue
 
-        for campsite_survey_date_str, campsite_shapefile in campsite_surveys.items():
-            campsite_survey_date = datetime.strptime(campsite_survey_date_str, '%Y%m%d')
-            # loop over each sandbar survey to find the one with the closest date to the campsite survey
-            closest_survey_date = None
-            closest_survey = None
-            for survey in site.surveys.values():
-                survey_date = survey.survey_date
-                if closest_survey_date is None or abs((survey_date - campsite_survey_date).days) < abs((closest_survey_date - campsite_survey_date).days):
-                    closest_survey_date = survey_date
-                    closest_survey = survey
+            log.info(f'Campsite ShapeFile: {campsite_shapefile} for site {site.site_code5} and survey date {survey.survey_date}')
 
-            # Create a new folder for this campsite survey
-            processing_folder = os.path.join(analysis_folder, site.site_code5, 'campsites', campsite_survey_date_str)
-            if os.path.exists(processing_folder):
-                # delete existing folder and all files in it in one command
-                os.system(f'rm -rf {processing_folder}')
-            os.makedirs(processing_folder)
-
+            # Create a new folder for processing this campsite survey
+            processing_folder = os.path.join(analysis_folder, site.site_code5, 'campsites', survey.survey_date.strftime('%Y%m%d'))
             merged_shapefile = os.path.join(processing_folder, 'merged_points.shp')
             polygon_shapefile = os.path.join(processing_folder, 'campsite_polygons.shp')
             raster_path = os.path.join(processing_folder, 'merged_dem.tif')
             clipped_path = os.path.join(processing_folder, 'clipped_dem.tif')
+
+            if os.path.isfile(clipped_path):
+                if reuse_rasters:
+                    log.info(f'Reusing existing clipped campsite raster {clipped_path}')
+                else:
+                    log.info(f'Deleting existing campsite processing folder {processing_folder}')
+                    os.system(f'rm -rf {processing_folder}')
+
+            if not os.path.isdir(processing_folder):
+                os.makedirs(processing_folder)
+
+            # Determine the bounding rectangle of the campsite polygons, buffered outwards to the nearest metre
             buffered_extent = get_buffered_campsite_extent(campsite_shapefile, cell_size)
 
+            # Create a new Shapefile containing the vertices of the campsite polylines
             create_points_shapefile_from_campsite_shapefile(campsite_shapefile, merged_shapefile)
-            create_campsite_polygons(campsite_shapefile, polygon_shapefile)
-            append_corgrid_points_to_shapefile(closest_survey.points_path, merged_shapefile)
+
+            # Append to the ShapeFile the points from the sandbar survey corgrids text file
+            append_corgrid_points_to_shapefile(survey.points_path, merged_shapefile)
+
+            # Create a raster from the merged points ShapeFile
             points_to_raster(gdal_warp.replace('gdalwarp', 'gdal_grid'), merged_shapefile, 'z', raster_path, cell_size, buffered_extent)
+
+            # Create a polygon ShapeFile from the campsite polyline ShapeFile
+            create_campsite_polygons(campsite_shapefile, polygon_shapefile)
+
+            # Clip the raster to the campsite polygons
             clip_raster(gdal_warp, raster_path, clipped_path, polygon_shapefile, '')
 
-        log.info(f'Binned analysis on site {site.site_code5} with {len(site.surveys)} surveys.')
+            # Loop over the analysis bins and determine the campsite area between the elevations
+            campsite_raster = Raster(filepath=clipped_path)
+            for bin_id, anal_bin in analysis_bins.items():
+                # Get the lower and upper elevations for the discharge. Either could be None
+                lower_elev = site.get_stage(anal_bin.lower_discharge)
+                upper_elev = site.get_stage(anal_bin.upper_discharge)
+
+                area = get_bin_area(campsite_raster.array, lower_elev, upper_elev, cell_size)
+                model_results.append((site_id, survey_id, os.path.basename(campsite_shapefile), bin_id, anal_bin.lower_discharge, anal_bin.upper_discharge, area))
+
+    # Write the results to the output file
+    with open(result_file_path, 'w', newline='', encoding='utf8') as result_file:
+        writer = csv.writer(result_file, delimiter=',')
+        writer.writerow(['SiteID', 'SurveyID', 'CampsiteShapeFile', 'BinID', 'LowerDischarge', 'UpperDischarge', 'Area'])
+        for result in model_results:
+            writer.writerow(result)
+
+    log.info(f'Campsite binned analysis is complete. Results at {result_file_path}')
+
+
+def get_campsite_shapefile(campsite_folder: str, site_code: str, survey_date: datetime) -> str:
+    """
+    Get the path to the campsite ShapeFile for the site and survey date
+    """
+
+    campsite_folder = os.path.join(campsite_folder, site_code)
+    if not os.path.isdir(campsite_folder):
+        return None
+
+    for file in os.listdir(campsite_folder):
+        if file.endswith('.shp'):
+            campsite_shapefile = os.path.join(campsite_folder, file)
+            match = file_name_pattern.match(os.path.basename(file))
+            if match:
+                __site_name = match.group('site_name')
+                campsite_date = match.group('survey_date')
+                if survey_date.year == campsite_date.year:
+                    return campsite_shapefile
+            else:
+                raise ValueError(f'Could not parse site name and survey date from file name {campsite_shapefile}')
+
+    # No campsite ShapeFile found for this site and survey date
+    return None
 
 
 def create_points_shapefile_from_campsite_shapefile(campsite_shapefile: str, merged_points: str) -> None:
@@ -119,7 +171,9 @@ def create_points_shapefile_from_campsite_shapefile(campsite_shapefile: str, mer
 
 def get_buffered_campsite_extent(campsite_shapefile: str, cell_size: float) -> Tuple[float, float, float, float]:
     """
-    Get the extent of the campsite ShapeFile
+    Get the extent of the campsite ShapeFile.
+    This opens the campsite polyline ShapeFile, gets the bounding rectangle.
+    It then buffers the rectangle to the nearest cell size and then rounds to the nearest metre.
     """
 
     # Open the campsite polyline ShapeFile
@@ -142,6 +196,8 @@ def get_buffered_campsite_extent(campsite_shapefile: str, cell_size: float) -> T
 def create_campsite_polygons(campsite_lines: str, polygon_shapefile) -> None:
     """
     Create a polygon ShapeFile from the campsite polyline ShapeFile
+    This builds a new ShapeFile with each campsite polyline turned into
+    a polygon
     """
 
     # Open the campsite polyline ShapeFile
@@ -150,7 +206,6 @@ def create_campsite_polygons(campsite_lines: str, polygon_shapefile) -> None:
         raise ValueError(f'Could not open campsite ShapeFile {campsite_lines}')
     input_layer = input_ds.GetLayerByIndex(0)
     input_spatial_ref = input_layer.GetSpatialRef()
-    lines_extent = input_layer.GetExtent()
 
     # Create a new polygon ShapeFile to contain the campsite polygons
     shp_driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -189,6 +244,12 @@ def append_corgrid_points_to_shapefile(corgrids_path: str, merged_shapefile: str
     Append the points from the corgrids text file to the merged point ShapeFile
     """
 
+    if not os.path.isfile(merged_shapefile):
+        raise ValueError(f'Could not find merged point ShapeFile {merged_shapefile}')
+
+    if not os.path.isfile(corgrids_path):
+        raise ValueError(f'Could not find corgrids text file {corgrids_path}')
+
     shp_driver = ogr.GetDriverByName('ESRI Shapefile')
     output_ds = shp_driver.Open(merged_shapefile, update=True)
     output_layer = output_ds.GetLayerByIndex(0)
@@ -208,25 +269,25 @@ def append_corgrid_points_to_shapefile(corgrids_path: str, merged_shapefile: str
     output_ds = None
 
 
-def get_campsite_surveys(site_folder: str) -> Dict[str, str]:
-    """
-    Get the surveys for the site
-    """
+# def get_campsite_surveys(site_folder: str) -> Dict[str, str]:
+#     """
+#     Get the surveys for the site
+#     """
 
-    surveys = {}
+#     surveys = {}
 
-    if not os.path.isdir(site_folder):
-        return surveys
+#     if not os.path.isdir(site_folder):
+#         return surveys
 
-    for file in os.listdir(site_folder):
-        if file.endswith('.shp'):
-            input_shapefile = os.path.join(site_folder, file)
-            match = file_name_pattern.match(os.path.basename(input_shapefile))
-            if match:
-                site_name = match.group('site_name')
-                survey_date = match.group('survey_date')
-                surveys[survey_date] = input_shapefile
-            else:
-                raise ValueError(f'Could not parse site name and survey date from file name {input_shapefile}')
+#     for file in os.listdir(site_folder):
+#         if file.endswith('.shp'):
+#             input_shapefile = os.path.join(site_folder, file)
+#             match = file_name_pattern.match(os.path.basename(input_shapefile))
+#             if match:
+#                 site_name = match.group('site_name')
+#                 survey_date = match.group('survey_date')
+#                 surveys[survey_date] = input_shapefile
+#             else:
+#                 raise ValueError(f'Could not parse site name and survey date from file name {input_shapefile}')
 
-    return surveys
+#     return surveys

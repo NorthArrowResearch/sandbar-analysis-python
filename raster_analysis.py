@@ -79,3 +79,46 @@ def get_above_elev(ar_values: np.array, elevation: float, cell_size: float) -> D
             ar_values[ar_values > elevation]) * cell_size**2 - (area_above_elev * elevation)
 
     return {'area': area_above_elev, 'volume': vol_above_elev}
+
+
+def get_bin_area(ar_survey: np.array, lower_elev: float, upper_elev: float, cell_size: float) -> float:
+    """
+    Finds the area of the raster between the lower and upper elevations.
+    This is a simplified version of get_vol_and_area() that only calculates the area.
+    It is used by the campsite analysis.
+
+       Lower is null then analysis < upper
+    Upper is null then analysis >= lower
+    Both valid then analysis >= lower and < upper
+    """
+
+    if lower_elev is None:
+        assert upper_elev is not None, 'An upper elevation must be provided if the lower elevation is not provided.'
+    else:
+        assert lower_elev >= 0, 'The lower elevation ({lower_elev}) must be greater than or equal to zero.'
+        if upper_elev is not None:
+            assert lower_elev < upper_elev, 'The lower elevation ({lower_elev}) must be less than the upper elevation ({upper_elev}).'
+
+    if upper_elev is not None:
+        assert upper_elev >= 0, 'The upper elevation ({upper_elev}) must be greater than or equal to zero.'
+
+    # Only proceed and calculate the area and volume if the survey is not entirely masked.
+    # This shouldn't be needed, but the Workbench might have sections for surveys where no data were collected.
+    if np.ma.MaskedArray.count(ar_survey) == 0:
+        return 0.0
+
+    template = {'area': 0.0}
+    survey_above_upper = copy.copy(template)
+
+    new_lower_elev = lower_elev
+    if lower_elev is None:
+        new_lower_elev = np.min(ar_survey)
+
+    survey_above_lower = get_above_elev(ar_survey, new_lower_elev, cell_size)
+
+    if upper_elev:
+        survey_above_upper = get_above_elev(ar_survey, upper_elev, cell_size)
+
+    area = survey_above_lower['area'] - survey_above_upper['area']
+
+    return area

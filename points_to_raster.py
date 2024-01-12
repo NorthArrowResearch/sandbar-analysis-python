@@ -18,6 +18,7 @@ def points_to_raster(gdal_grid_path: str, points_shapefile: str, z_field: str, o
     :param out_raster: The path to the output raster
     :param clip_shape_file: The path to the polygon ShapeFile to use for clipping
     :param where_clause: Feature filter for selecting which features to use for clipping
+    https://gdal.org/programs/gdal_grid.html
     """
 
     log = Logger('Points to Raster')
