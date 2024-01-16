@@ -26,17 +26,11 @@ class SandbarSite:
                  site_code: str,
                  site_code5: str,
                  site_id,
-                 discharge_a: float,
-                 discharge_b: float,
-                 discharge_c: float,
                  survey_folder: str):
 
         self.site_code = site_code
         self.site_code5 = site_code5
         self.site_id = site_id
-        self.dis_coefficient_a = discharge_a
-        self.dis_coefficient_b = discharge_b
-        self.dis_coefficient_c = discharge_c
         self.inputs_survey_folder = survey_folder
 
         self.surveys: Dict[int, SandbarSurvey] = {}
@@ -54,19 +48,6 @@ class SandbarSite:
 
         assert len(self.site_code5), f"The siteCode5 field '{site_code5}' is not five character in length."
 
-    def get_stage(self, discharge: float) -> float:
-        """
-        Get the elevation at the specified discharge
-        """
-
-        if discharge is None:
-            return None
-        else:
-            stage = self.dis_coefficient_a + \
-                (self.dis_coefficient_b * discharge) + \
-                (self.dis_coefficient_c * (discharge ** 2))
-            return round(stage, 2)
-
     def get_min_analysis_stage(self, min_survey_elev: float, benchmark_discharge: float, analysis_increment: float) -> float:
         """
         Get the minimum analysis elevation for the calculation of sand volumes by
@@ -82,7 +63,9 @@ class SandbarSite:
         if isnan(min_survey_elev):
             return None
 
-        benchmark_stage = self.get_stage(benchmark_discharge)
+        # This used to retrieve the stage from the site. But now each survey can have a different stage discharge.
+        benchmark_stage = [survey.get_stage(benchmark_discharge) for survey in self.surveys.values()]
+
         min_analysis_stage = benchmark_stage - ceil((benchmark_stage - min_survey_elev) / analysis_increment) * analysis_increment
 
         if isnan(min_analysis_stage):
@@ -276,8 +259,7 @@ def load_sandbar_data(top_level_folder: str, xml_sites) -> Dict[int, SandbarSite
         site_code4 = site_tag.attrib["code4"]
         survey_folder = os.path.join(top_level_folder, site_code4 + "corgrids")
         if os.path.isdir(survey_folder):
-            sandbar_site = SandbarSite(site_code4, site_tag.attrib["code5"], int(site_tag.attrib["id"]), float(
-                site_tag.attrib["stagedisa"]), float(site_tag.attrib["stagedisb"]), float(site_tag.attrib["stagedisc"]), survey_folder)
+            sandbar_site = SandbarSite(site_code4, site_tag.attrib["code5"], int(site_tag.attrib["id"]), survey_folder)
 
             # Add the site to the main dictionary of sandbar sites
             sites[int(site_tag.attrib["id"])] = sandbar_site
@@ -302,7 +284,8 @@ def load_sandbar_data(top_level_folder: str, xml_sites) -> Dict[int, SandbarSite
                     analysis_count += 1 if is_analysis is True else 0
                     min_surface_count += 1 if is_min_surface is True else 0
 
-                    sandbar_survey = SandbarSurvey(survey_id, survey_date, points_path_corrected, is_analysis, is_min_surface)
+                    sandbar_survey = SandbarSurvey(survey_id, survey_date, float(
+                        survey_tag.attrib["stagedisa"]), float(survey_tag.attrib["stagedisb"]), float(survey_tag.attrib["stagedisc"]), points_path_corrected, is_analysis, is_min_surface)
                     sandbar_site.surveys[survey_id] = sandbar_survey
 
                     # Load all the child sections that were collected during this survey

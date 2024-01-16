@@ -33,12 +33,12 @@ def run_binned_analysis(
 
         # Loop over all the surveys for the site and perform the binned (<8k,
         # 8-25k, > 25k) analysis
-        for survey_id, survey_date in site.surveys.items():
+        for survey_id, survey in site.surveys.items():
 
             # Only proceed with this survey if it is flagged to be apart of the analysis.
-            if survey_date.is_analysis is True:
+            if survey.is_analysis is True:
 
-                for section in survey_date.surveyed_sections.values():
+                for section in survey.surveyed_sections.values():
 
                     # Only process sections that have computation extent polygons
                     if section.ignore:
@@ -49,8 +49,8 @@ def run_binned_analysis(
                     for anal_bin in analysis_bins.values():
 
                         # Get the lower and upper elevations for the discharge. Either could be None
-                        lower_elev = site.get_stage(anal_bin.lower_discharge)
-                        upper_elev = site.get_stage(anal_bin.upper_discharge)
+                        lower_elev = survey.get_stage(anal_bin.lower_discharge)
+                        upper_elev = survey.get_stage(anal_bin.upper_discharge)
 
                         # Get volume and area between the surveyed surface and minimum surface
                         area_vol = get_vol_and_area(survey_raster.array, site.min_surface.array, lower_elev, upper_elev, cell_size)
@@ -61,7 +61,7 @@ def run_binned_analysis(
                         if lower_elev is not None:
                             maxmin_area_vol = get_vol_and_area(site.max_surface.array, site.min_surface.array, lower_elev, upper_elev, cell_size)
 
-                        model_results.append((site_id, site.site_code5, survey_id, survey_date.survey_date.strftime('%Y-%m-%d'),
+                        model_results.append((site_id, site.site_code5, survey_id, survey.survey_date.strftime('%Y-%m-%d'),
                                              section.section_type_id, section.section_type, section.section_id,
                                              anal_bin.bin_id, anal_bin.title,
                                              area_vol[0], area_vol[1], area_vol[2], area_vol[3], area_vol[4], area_vol[5],

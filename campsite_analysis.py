@@ -48,10 +48,10 @@ def run_campsite_analysis(
             campsite_shapefile = get_campsite_shapefile(campsite_parent_folder, site.site_code, survey.survey_date)
 
             if campsite_shapefile is None:
-                log.info('No campsite ShapeFile found for site {site.site_code5} and survey date {survey_date.survey_date}')
+                # log.info(f'No campsite ShapeFile found for site {site.site_code5} and survey date {survey.survey_date.strftime("%Y-%m-%d")}')
                 continue
 
-            log.info(f'Campsite ShapeFile: {campsite_shapefile} for site {site.site_code5} and survey date {survey.survey_date}')
+            log.info(f'Campsite ShapeFile: {campsite_shapefile} for site {site.site_code5} and survey date {survey.survey_date.strftime("%Y-%m-%d")}')
 
             # Create a new folder for processing this campsite survey
             processing_folder = os.path.join(analysis_folder, site.site_code5, 'campsites', survey.survey_date.strftime('%Y%m%d'))
@@ -74,10 +74,10 @@ def run_campsite_analysis(
             buffered_extent = get_buffered_campsite_extent(campsite_shapefile, cell_size)
 
             # Create a new Shapefile containing the vertices of the campsite polylines
-            create_points_shapefile_from_campsite_shapefile(campsite_shapefile, merged_shapefile)
+            create_points_from_campsite_polylines(campsite_shapefile, merged_shapefile)
 
             # Append to the ShapeFile the points from the sandbar survey corgrids text file
-            append_corgrid_points_to_shapefile(survey.points_path, merged_shapefile)
+            append_corgrid_points(survey.points_path, merged_shapefile)
 
             # Create a raster from the merged points ShapeFile
             points_to_raster(gdal_warp.replace('gdalwarp', 'gdal_grid'), merged_shapefile, 'z', raster_path, cell_size, buffered_extent)
@@ -92,8 +92,8 @@ def run_campsite_analysis(
             campsite_raster = Raster(filepath=clipped_path)
             for bin_id, anal_bin in analysis_bins.items():
                 # Get the lower and upper elevations for the discharge. Either could be None
-                lower_elev = site.get_stage(anal_bin.lower_discharge)
-                upper_elev = site.get_stage(anal_bin.upper_discharge)
+                lower_elev = survey.get_stage(anal_bin.lower_discharge)
+                upper_elev = survey.get_stage(anal_bin.upper_discharge)
 
                 area = get_bin_area(campsite_raster.array, lower_elev, upper_elev, cell_size)
                 model_results.append((site_id, survey_id, os.path.basename(campsite_shapefile), bin_id, anal_bin.lower_discharge, anal_bin.upper_discharge, area))
@@ -113,7 +113,7 @@ def get_campsite_shapefile(campsite_folder: str, site_code: str, survey_date: da
     Get the path to the campsite ShapeFile for the site and survey date
     """
 
-    campsite_folder = os.path.join(campsite_folder, site_code)
+    campsite_folder = os.path.join(campsite_folder, f'{site_code}camps')
     if not os.path.isdir(campsite_folder):
         return None
 
@@ -123,20 +123,23 @@ def get_campsite_shapefile(campsite_folder: str, site_code: str, survey_date: da
             match = file_name_pattern.match(os.path.basename(file))
             if match:
                 __site_name = match.group('site_name')
-                campsite_date = match.group('survey_date')
+                campsite_date_str = match.group('survey_date')
+                campsite_date = datetime.strptime(campsite_date_str, '%Y%m%d')
                 if survey_date.year == campsite_date.year:
                     return campsite_shapefile
             else:
-                raise ValueError(f'Could not parse site name and survey date from file name {campsite_shapefile}')
+                raise ValueError(f'Could not parse site name and survey date from campsite file {campsite_shapefile}')
 
     # No campsite ShapeFile found for this site and survey date
     return None
 
 
-def create_points_shapefile_from_campsite_shapefile(campsite_shapefile: str, merged_points: str) -> None:
+def create_points_from_campsite_polylines(campsite_shapefile: str, merged_points: str) -> None:
     """
     Create a point ShapeFile from the campsite polyline ShapeFile vertices
     """
+
+    log = Logger('Campsite Analysis')
 
     # Open the campsite polyline ShapeFile
     input_ds = ogr.Open(campsite_shapefile)
@@ -151,8 +154,21 @@ def create_points_shapefile_from_campsite_shapefile(campsite_shapefile: str, mer
     output_layer = output_ds.CreateLayer(os.path.splitext(os.path.basename(merged_points))[0], geom_type=ogr.wkbPoint, srs=input_spatial_ref)
     output_layer.CreateField(ogr.FieldDefn('z', ogr.OFTReal))
 
+    # Keep track of the number of valid campsite polylines
+    valid_polylines = 0
     for feature in input_layer:
         polyline_geom = feature.GetGeometryRef().Clone()
+
+        if polyline_geom is None or polyline_geom.IsEmpty():
+            log.warning(f'Empty campsite polyline for feature {feature.GetFID()} in campsite ShapeFile {campsite_shapefile}')
+            continue
+
+        if not polyline_geom.IsValid():
+            log.warning(f'Invalid campsite polyline for feature {feature.GetFID()} in campsite ShapeFile {campsite_shapefile}')
+            continue
+
+        valid_polylines += 1
+
         # Loop over all vertices in this campsite polyline
         for idx in range(polyline_geom.GetPointCount()):
             # Write the point to the merged point ShapeFile
@@ -167,6 +183,10 @@ def create_points_shapefile_from_campsite_shapefile(campsite_shapefile: str, mer
 
     input_ds = None
     output_ds = None
+
+    # Campsite analysis can't continue for this site if there are no valid campsite polylines
+    if valid_polylines < 1:
+        raise ValueError(f'No valid campsite polylines found in campsite ShapeFile {campsite_shapefile}')
 
 
 def get_buffered_campsite_extent(campsite_shapefile: str, cell_size: float) -> Tuple[float, float, float, float]:
@@ -200,6 +220,8 @@ def create_campsite_polygons(campsite_lines: str, polygon_shapefile) -> None:
     a polygon
     """
 
+    log = Logger('Campsite Analysis')
+
     # Open the campsite polyline ShapeFile
     input_ds = ogr.Open(campsite_lines)
     if input_ds is None:
@@ -217,6 +239,14 @@ def create_campsite_polygons(campsite_lines: str, polygon_shapefile) -> None:
     for feature in input_layer:
         polyline_geom = feature.GetGeometryRef().Clone()
 
+        if polyline_geom is None or polyline_geom.IsEmpty():
+            log.warning(f'Empty campsite polyline for feature {feature.GetFID()} in campsite ShapeFile {campsite_lines}')
+            continue
+
+        if not polyline_geom.IsValid():
+            log.warning(f'Invalid campsite polyline for feature {feature.GetFID()} in campsite ShapeFile {campsite_lines}')
+            continue
+
         # Create a linear ring for this campsite polygon
         linear_ring = ogr.Geometry(ogr.wkbLinearRing)
 
@@ -230,6 +260,12 @@ def create_campsite_polygons(campsite_lines: str, polygon_shapefile) -> None:
         polygon_geom = ogr.Geometry(ogr.wkbPolygon)
         polygon_geom.AddGeometry(linear_ring)
         polygon_geom.CloseRings()
+
+        if not polygon_geom.IsValid():
+            log.error(f'Invalid campsite polygon for feature {feature.GetFID()} in campsite ShapeFile {campsite_lines}')
+            # raise ValueError(f'Invalid campsite polygon for feature {feature.GetFID()} in campsite ShapeFile {campsite_lines}')
+            continue
+
         polygon_feature = ogr.Feature(polygon_layer.GetLayerDefn())
         polygon_feature.SetGeometry(polygon_geom)
         polygon_layer.CreateFeature(polygon_feature)
@@ -239,7 +275,7 @@ def create_campsite_polygons(campsite_lines: str, polygon_shapefile) -> None:
     polygon_ds = None
 
 
-def append_corgrid_points_to_shapefile(corgrids_path: str, merged_shapefile: str) -> None:
+def append_corgrid_points(corgrids_path: str, merged_shapefile: str) -> None:
     """
     Append the points from the corgrids text file to the merged point ShapeFile
     """
@@ -267,27 +303,3 @@ def append_corgrid_points_to_shapefile(corgrids_path: str, merged_shapefile: str
             feature = None
 
     output_ds = None
-
-
-# def get_campsite_surveys(site_folder: str) -> Dict[str, str]:
-#     """
-#     Get the surveys for the site
-#     """
-
-#     surveys = {}
-
-#     if not os.path.isdir(site_folder):
-#         return surveys
-
-#     for file in os.listdir(site_folder):
-#         if file.endswith('.shp'):
-#             input_shapefile = os.path.join(site_folder, file)
-#             match = file_name_pattern.match(os.path.basename(input_shapefile))
-#             if match:
-#                 site_name = match.group('site_name')
-#                 survey_date = match.group('survey_date')
-#                 surveys[survey_date] = input_shapefile
-#             else:
-#                 raise ValueError(f'Could not parse site name and survey date from file name {input_shapefile}')
-
-#     return surveys

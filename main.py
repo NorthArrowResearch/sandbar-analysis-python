@@ -41,23 +41,28 @@ def main(conf: dict) -> None:
     comp_extent = ComputationExtents(conf['CompExtentShpPath'], conf['srsEPSG'])
     validate_site_codes(comp_extent, sites)
 
-    # Create the DEM rasters and then clip them to the sandbar sections
-    raster_preparation(sites, conf['AnalysisFolder'], conf['CSVCellSize'], conf['RasterCellSize'],
-                       conf['ResampleMethod'], conf['srsEPSG'], conf['ReUseRasters'], conf['GDALWarp'],
-                       comp_extent)
+    incremental = 'IncrementalResults' in conf and conf['IncrementalResults'] is not None
+    binned = 'BinnedResults' in conf and conf['BinnedResults'] is not None
+    campsite = 'CampsiteResults' in conf and conf['CampsiteResults'] is not None
+
+    if incremental is True or binned is True:
+        # Create the DEM rasters and then clip them to the sandbar sections
+        raster_preparation(sites, conf['AnalysisFolder'], conf['CSVCellSize'], conf['RasterCellSize'],
+                           conf['ResampleMethod'], conf['srsEPSG'], conf['ReUseRasters'], conf['GDALWarp'],
+                           comp_extent)
 
     # Incremental Analysis
-    if 'IncrementalResults' in conf and conf['IncrementalResults'] is not None:
+    if incremental is True:
         inc_results_path = os.path.join(conf['AnalysisFolder'], conf['IncrementalResults'])
         run_incremental_analysis(sites, conf['ElevationBenchmark'], conf['ElevationIncrement'], conf['RasterCellSize'], inc_results_path)
 
     # Binned Analysis
-    if 'BinnedResults' in conf and conf['BinnedResults'] is not None:
+    if binned is True:
         bin_results_path = os.path.join(conf['AnalysisFolder'], conf['BinnedResults'])
         run_binned_analysis(sites, analysis_bins, conf['RasterCellSize'], bin_results_path)
 
     # Campsite Analysis
-    if 'CampsiteResults' in conf and conf['CampsiteResults'] is not None:
+    if campsite is True:
         campsite_results_path = os.path.join(conf['AnalysisFolder'], conf['CampsiteResults'])
         run_campsite_analysis(
             conf['CampsiteFolder'],
