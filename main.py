@@ -65,7 +65,7 @@ def main(conf: dict) -> None:
     if campsite is True:
         campsite_results_path = os.path.join(conf['AnalysisFolder'], conf['CampsiteResults'])
         run_campsite_analysis(
-            conf['CampsiteFolder'],
+            conf['CampsiteShpPath'],
             sites,
             conf['AnalysisFolder'],
             campsite_bins,
