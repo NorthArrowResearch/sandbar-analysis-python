@@ -8,13 +8,14 @@ import csv
 import math
 from datetime import datetime
 from osgeo import ogr
-from raster import Raster
+from Raster import Raster
 from raster_analysis import get_bin_area
 from logger import Logger
 from sandbar_site import SandbarSite
 from analysis_bin import AnalysisBin
 from clip_raster import clip_raster
 from points_to_raster import points_to_raster
+import numpy as np
 
 file_name_pattern = re.compile(r'^(?P<site_name>[^_]+)_(?P<survey_date>\d{8})_.*')
 
@@ -95,7 +96,8 @@ def run_campsite_analysis(
                 lower_elev = survey.get_stage(anal_bin.lower_discharge)
                 upper_elev = survey.get_stage(anal_bin.upper_discharge)
 
-                area = get_bin_area(campsite_raster.array, lower_elev, upper_elev, cell_size)
+                masked_array = np.ma.array(campsite_raster.array)
+                area = get_bin_area(masked_array, lower_elev, upper_elev, cell_size)
                 model_results.append((site_id, survey_id, os.path.basename(campsite_shapefile), bin_id, anal_bin.lower_discharge, anal_bin.upper_discharge, area))
 
     # Write the results to the output file
