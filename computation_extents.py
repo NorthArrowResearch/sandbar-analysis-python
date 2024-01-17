@@ -16,7 +16,7 @@ class ComputationExtents:
     extents for each site. The ShapeFile must contain a field named 'Site' that contains the site code
     """
 
-    def __init__(self, full_path: str, epsg: int | str):
+    def __init__(self, full_path: str, epsg):
         self.full_path = full_path
         self.log = Logger('Comp. Extents')
 
