@@ -7,7 +7,7 @@ from a single corgrid text file.
 from typing import Tuple
 import os
 from subprocess import call, PIPE
-from raster import delete_raster
+from Raster import delete_raster
 from logger import Logger
 
 
@@ -35,6 +35,9 @@ def points_to_raster(gdal_grid_path: str, points_shapefile: str, z_field: str, o
     y_extent = f'{buffered_extent[2]} {buffered_extent[3]}'
     gdal_args = f' -a linear -zfield {z_field} -tr {cell_size} {cell_size} -txe {x_extent} -tye {y_extent} {points_shapefile} {out_raster}'
     log.debug('RUNNING GdalGrid: ' + gdal_grid_path + gdal_args)
+
+    if ' ' in gdal_grid_path:
+        gdal_grid_path = f'"{gdal_grid_path}"'
 
     return_val = call(gdal_grid_path + gdal_args, stdout=PIPE, shell=True)
 

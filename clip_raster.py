@@ -4,7 +4,7 @@ This is used for clipping the DEM rasters to the computation extent polygons
 """
 import os
 from subprocess import call, PIPE
-from raster import delete_raster
+from Raster import delete_raster
 from logger import Logger
 
 
@@ -32,6 +32,9 @@ def clip_raster(gdal_warp_path: str, in_raster: str, out_raster: str, shape_file
 
     gdal_args = f' -cutline {shape_file} {where_param} {in_raster} {out_raster}'
     log.debug('RUNNING GdalWarp: ' + gdal_warp_path + gdal_args)
+
+    if ' ' in gdal_warp_path:
+        gdal_warp_path = f'"{gdal_warp_path}"'
 
     return_val = call(gdal_warp_path + gdal_args, stdout=PIPE, shell=True)
 
