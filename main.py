@@ -96,9 +96,11 @@ if __name__ == '__main__':
         # Now kick things off
         log.info(f'Starting Sandbar script with: input_xml: {args.input_xml}')
         main(config)
+        sys.exit(0)
     except AssertionError as e:
         log.error('Assertion Error', e)
-        sys.exit(0)
+        sys.exit(1)
     except Exception as e:
         log.error(f'Unexpected error: {sys.exc_info()[0]}', e)
-        sys.exit(0)
+        sys.exit(1)
+
