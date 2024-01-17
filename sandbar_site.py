@@ -8,7 +8,7 @@ from math import ceil, isnan
 from datetime import datetime
 from osgeo import ogr
 import numpy as np
-from raster import Raster
+from Raster import Raster
 from csv_lib import union_csv_extents
 from logger import Logger
 from clip_raster import clip_raster
@@ -64,7 +64,7 @@ class SandbarSite:
             return None
 
         # This used to retrieve the stage from the site. But now each survey can have a different stage discharge.
-        benchmark_stage = [survey.get_stage(benchmark_discharge) for survey in self.surveys.values()]
+        benchmark_stage = min([survey.get_stage(benchmark_discharge) for survey in self.surveys.values()])
 
         min_analysis_stage = benchmark_stage - ceil((benchmark_stage - min_survey_elev) / analysis_increment) * analysis_increment
 
@@ -158,12 +158,11 @@ class SandbarSite:
             assert os.path.isfile(survey.dem_path), f'Failed to generate raster for site {self.site_code5} at {survey.dem_path}'
 
         # write the minimum and maximum surfaces raster to file
-        if not reuse_rasters:
-            assert self.min_surface is not None, f'Error generating minimum surface raster for site {self.site_code5}'
-            self.min_surface.write(self.min_surface_path)
+        assert self.min_surface is not None, f'Error generating minimum surface raster for site {self.site_code5}'
+        self.min_surface.write(self.min_surface_path)
 
-            assert self.max_surface is not None, f'Error generating maximum surface raster for site {self.site_code5}'
-            self.max_surface.write(self.max_surface_path)
+        assert self.max_surface is not None, f'Error generating maximum surface raster for site {self.site_code5}'
+        self.max_surface.write(self.max_surface_path)
 
         assert os.path.isfile(self.min_surface_path), f'Minimum surface raster is missing for site {self.site_code5} at {self.min_surface_path}'
         assert os.path.isfile(self.max_surface_path), f'Maximum surface raster is missing for site {self.site_code5} at {self.max_surface_path}'
