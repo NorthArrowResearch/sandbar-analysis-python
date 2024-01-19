@@ -65,7 +65,7 @@ def main(conf: dict) -> None:
     if campsite is True:
         campsite_results_path = os.path.join(conf['AnalysisFolder'], conf['CampsiteResults'])
         run_campsite_analysis(
-            conf['CampsiteShpPath'],
+            conf['CampsiteFolder'],
             sites,
             conf['AnalysisFolder'],
             campsite_bins,
@@ -103,4 +103,3 @@ if __name__ == '__main__':
     except Exception as e:
         log.error(f'Unexpected error: {sys.exc_info()[0]}', e)
         sys.exit(1)
-

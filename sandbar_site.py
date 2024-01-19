@@ -8,7 +8,7 @@ from math import ceil, isnan
 from datetime import datetime
 from osgeo import ogr
 import numpy as np
-from Raster import Raster
+from raster import Raster
 from csv_lib import union_csv_extents
 from logger import Logger
 from clip_raster import clip_raster

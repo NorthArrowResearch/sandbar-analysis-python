@@ -8,7 +8,7 @@ import csv
 import math
 from datetime import datetime
 from osgeo import ogr
-from Raster import Raster
+from raster import Raster
 from raster_analysis import get_bin_area
 from logger import Logger
 from sandbar_site import SandbarSite

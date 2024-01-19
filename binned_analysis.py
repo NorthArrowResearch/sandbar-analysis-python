@@ -4,7 +4,7 @@ Run the binned analysis
 import csv
 from typing import Dict, List
 from raster_analysis import get_vol_and_area
-from Raster import Raster
+from raster import Raster
 from logger import Logger
 from sandbar_site import SandbarSite
 from analysis_bin import AnalysisBin

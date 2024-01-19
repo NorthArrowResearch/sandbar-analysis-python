@@ -7,7 +7,7 @@ from a single corgrid text file.
 from typing import Tuple
 import os
 from subprocess import call, PIPE
-from Raster import delete_raster
+from raster import delete_raster
 from logger import Logger
 
 

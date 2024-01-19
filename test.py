@@ -15,16 +15,14 @@
 import unittest
 from os import path, makedirs
 import shutil
-from osgeo import ogr
 from osgeo import gdal
 import numpy as np
 
 # Here's what we're testing
 import raster_analysis
 from logger import Logger
-from Raster import Raster, delete_raster
+from raster import Raster, delete_raster
 from csv_lib import union_csv_extents
-from sandbar_site import SandbarSite
 
 
 class TempPathHelper():

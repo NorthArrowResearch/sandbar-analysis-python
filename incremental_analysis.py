@@ -4,7 +4,7 @@ Incremental sandbar analysis
 from typing import Dict
 import csv
 from raster_analysis import get_vol_and_area
-from Raster import Raster
+from raster import Raster
 from logger import Logger
 from sandbar_site import SandbarSite
 from sandbar_survey_section import SandbarSurveySection
