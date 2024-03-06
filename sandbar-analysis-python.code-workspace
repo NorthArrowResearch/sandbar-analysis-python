@@ -5,52 +5,57 @@
 		}
 	],
 	"settings": {
-		"[python]": {
-			"editor.tabSize": 4,
-			"editor.formatOnSave": true,
-		},
-		"python.terminal.activateEnvironment": true,
-		"python.testing.pytestEnabled": true,
-		"python.testing.unittestEnabled": true,
-		"files.watcherExclude": {
-			"**/*.egg-info/**": true,
-			"**/docs/**": true,
-			"**/*.pytest_cache/**": true,
-			"**/.venv/**": true,
-			"**/__pycache__/**": true
-		},
-		"search.exclude": {
-			"**/*.egg-info/**": true,
-			"**/*.pytest_cache/**": true,
-			"**/.venv/**": true,
-			"**/__pycache__/**": true
-		},
-		"files.exclude": {
-			"**/*.egg-info/**": true,
-			"**/*.pytest_cache/**": true,
-			"**/.venv/**": true,
-			"**/__pycache__/**": true
-		},
-		"pylint.args": [
-			"--extension-pkg-whitelist=pygeoprocessing",
-			"--ignore=E501",
-			"--max-line-length=240",
-		],
-		"autopep8.args": [
-			"--ignore=E501",
-			"--max-line-length=240",
-		],
-		"github.copilot.enable": {
-			"markdown": "true"
-		},
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "[python]": {
+      "editor.tabSize": 4,
+      "editor.formatOnSave": true
+    },
+    "autopep8.args": [
+      "--max-line-length=240",
+      "--ignore=E501"
+    ],
+    "pylint.args": [
+      "--extension-pkg-whitelist=pygeoprocessing",
+      "--ignore=E501",
+      "--max-line-length=240"
+    ],
+    "python.analysis.extraPaths": ["../../lib/commons"],
+    "python.terminal.activateEnvironment": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": true,
+    "files.watcherExclude": {
+      "**/*.egg-info/**": true,
+      "**/docs/**": true,
+      "**/*.pytest_cache/**": true,
+      "**/.venv/**": true,
+      "**/__pycache__/**": true
+    },
+    "search.exclude": {
+      "**/*.egg-info/**": true,
+      "**/*.pytest_cache/**": true,
+      "**/.venv/**": true,
+      "**/__pycache__/**": true
+    },
+    "files.exclude": {
+      "**/*.egg-info/**": true,
+      "**/*.pytest_cache/**": true,
+      "**/.venv/**": true,
+      "**/__pycache__/**": true
+    }
 	},
 	"extensions": {
 		"recommendations": [
-			"ms-python.pylint",
-			"ms-python.python",
-			"ms-python.autopep8",
-			"ms-python.isort",
-			"ms-python.vscode-pylance"
+      "eriklynd.json-tools",
+      "GitHub.copilot-chat",
+      "GitHub.copilot",
+      "mhutchie.git-graph",
+      "ms-python.autopep8",
+      "ms-python.pylint",
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "njpwerner.autodocstring",
+      "unifiedjs.vscode-mdx",
+      "yzhang.markdown-all-in-one"
 		]
 	}
 }
